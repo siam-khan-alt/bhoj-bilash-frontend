@@ -73,6 +73,9 @@ export interface Attendance {
   staffId: string;
   date: string; // YYYY-MM-DD
   status: AttendanceStatus;
+  inTime?: string; // HH:MM — koitai dhuklo
+  outTime?: string; // HH:MM — kokhon ber holo
+  note?: string;
   createdAt: string;
 }
 

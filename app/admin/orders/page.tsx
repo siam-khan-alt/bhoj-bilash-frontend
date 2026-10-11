@@ -1,16 +1,23 @@
 "use client";
-import { getAllOrders, updateOrderStatus } from "@/lib/api/orders";
+import { getAllOrders } from "@/lib/api/orders";
 import { useState, useEffect } from "react";
 import { Eye } from "lucide-react";
 
-import CustomSelect from "@/components/common/CustomSelect";
 import CustomerDetailsModal from "@/components/admin/CustomerDetailsModal";
-import { showSuccess, showError } from "@/components/common/Toast";
+import { showError } from "@/components/common/Toast";
 
-const statusOptions = ["placed", "preparing", "delivered", "cancelled"];
 const filterOptions = ["all", "placed", "preparing", "delivered", "cancelled", "dine_in", "parcel"] as const;
 
 const typeLabel = (t?: string) => (t === "both" ? "Ekhane+Parcel" : t === "parcel" ? "Parcel" : "Ekhane");
+
+const statusStyle = (s?: string) =>
+  s === "delivered"
+    ? "bg-accent/10 text-accent"
+    : s === "preparing"
+    ? "bg-blue-500/10 text-blue-500"
+    : s === "cancelled"
+    ? "bg-red-500/10 text-red-500"
+    : "bg-amber-500/10 text-amber-500";
 
 // type filter inclusive: "Ekhane khabe" chip e both-o asbe, "Parcel" chip e both-o asbe
 const matchType = (t: string | undefined, f: "dine_in" | "parcel") => {
@@ -36,16 +43,6 @@ export default function ManageOrders() {
       showError("Failed to load orders");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
-    try {
-      await updateOrderStatus(orderId, newStatus as import('@/types').OrderStatus);
-      showSuccess("Order status updated");
-      fetchOrders();
-    } catch (err) {
-      showError("Failed to update status");
     }
   };
 
@@ -137,12 +134,9 @@ export default function ManageOrders() {
                 </td>
 
                 <td className="p-3">
-                  <CustomSelect
-                    value={order.orderStatus}
-                    options={statusOptions.map((status) => ({ value: status, label: status.toUpperCase() }))}
-                    onChange={(newStatus) => handleStatusChange(order._id, newStatus)}
-                    className="min-w-[110px] py-2 px-2.5 text-xs"
-                  />
+                  <span className={`text-xs font-bold px-2 py-1 rounded-md ${statusStyle(order.orderStatus)}`}>
+                    {order.orderStatus.toUpperCase()}
+                  </span>
                 </td>
               </tr>
             ))}
