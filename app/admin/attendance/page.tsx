@@ -200,7 +200,7 @@ export default function AttendancePage() {
     <div>
       <div className="flex flex-wrap gap-3 justify-between items-center mb-4">
         <h2 className="text-xl font-black">Hajira Management</h2>
-        <div className="flex gap-2 bg-card-bg border border-card-border rounded-xl p-1">
+        <div className="flex gap-2 bg-card-bg border border-card-border rounded-md p-1">
           {(
             [
               { v: "daily", label: "Hajira Nin" },
@@ -231,7 +231,7 @@ export default function AttendancePage() {
               <button
                 onClick={markAllPresent}
                 disabled={saving === "all"}
-                className="px-3 py-2 rounded-xl text-xs font-black bg-accent/10 text-accent border border-accent/20 hover:bg-accent hover:text-white transition"
+                className="px-3 py-2 rounded-md text-xs font-black bg-accent/10 text-accent border border-accent/20 hover:bg-accent hover:text-white transition"
               >
                 Sobarke Uposthit + Ekhon time
               </button>
@@ -240,11 +240,11 @@ export default function AttendancePage() {
                 value={date}
                 max={todayBD()}
                 onChange={(e) => setDate(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-card-border bg-bg-main text-sm"
+                className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm"
               />
             </div>
           </div>
-          <p className="text-[11px] text-muted mb-3 bg-card-bg border border-card-border rounded-xl px-3 py-2">
+          <p className="text-[11px] text-muted mb-3 bg-card-bg border border-card-border rounded-md px-3 py-2">
             Standard flow — <b className="text-text-main">sokale 1 bar:</b> status + Dhukar time diye <b className="text-text-main">Entry Save</b> •{" "}
             <b className="text-text-main">rate 1 bar:</b> Ber howar time diye <b className="text-text-main">Exit Save</b>
           </p>
@@ -258,7 +258,7 @@ export default function AttendancePage() {
               const entryDone = !!rec;
               const exitDone = !!rec?.outTime;
               return (
-                <div key={s._id} className="bg-card-bg border border-card-border rounded-2xl p-4">
+                <div key={s._id} className="bg-card-bg border border-card-border rounded-lg p-4">
                   {/* header */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-full bg-brand/10 text-brand font-black flex items-center justify-center text-sm shrink-0">
@@ -289,7 +289,7 @@ export default function AttendancePage() {
                         <button
                           key={o.v}
                           onClick={() => setStatusDraft((p) => ({ ...p, [s._id]: o.v }))}
-                          className={`flex items-center justify-center gap-1 py-2 rounded-xl border text-[11px] font-black transition ${
+                          className={`flex items-center justify-center gap-1 py-2 rounded-md border text-[11px] font-black transition ${
                             active ? o.cls : "bg-bg-main border-card-border text-muted hover:border-brand/40"
                           }`}
                         >
@@ -305,14 +305,14 @@ export default function AttendancePage() {
                     <button
                       onClick={() => saveEntry(s._id)}
                       disabled={saving === `${s._id}-entry`}
-                      className="w-full py-2 rounded-xl text-xs font-black bg-brand text-white disabled:opacity-50"
+                      className="w-full py-2 rounded-md text-xs font-black bg-brand text-white disabled:opacity-50"
                     >
                       {entryDone ? "Update kore din" : "Chuti / Absent Save korun"}
                     </button>
                   ) : (
                   <div className="grid grid-cols-2 gap-2">
                     {/* ENTRY */}
-                    <div className={`rounded-xl border p-2 ${entryDone ? "border-accent/30 bg-accent/5" : "border-card-border bg-bg-main"}`}>
+                    <div className={`rounded-md border p-2 ${entryDone ? "border-accent/30 bg-accent/5" : "border-card-border bg-bg-main"}`}>
                       <p className="text-[10px] font-black uppercase tracking-wide text-muted mb-1.5">
                         1. Entry {entryDone && rec?.inTime ? <span className="text-accent">✓ {rec.inTime}</span> : ""}
                       </p>
@@ -339,7 +339,7 @@ export default function AttendancePage() {
                     </div>
 
                     {/* EXIT */}
-                    <div className={`rounded-xl border p-2 ${exitDone ? "border-accent/30 bg-accent/5" : "border-card-border bg-bg-main"}`}>
+                    <div className={`rounded-md border p-2 ${exitDone ? "border-accent/30 bg-accent/5" : "border-card-border bg-bg-main"}`}>
                       <p className="text-[10px] font-black uppercase tracking-wide text-muted mb-1.5">
                         2. Exit {exitDone ? <span className="text-accent">✓ {rec?.outTime}</span> : entryDone ? <span>• baki</span> : ""}
                       </p>
@@ -389,10 +389,10 @@ export default function AttendancePage() {
               type="month"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-card-border bg-bg-main text-sm"
+              className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm"
             />
           </div>
-          <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden overflow-x-auto">
+          <div className="bg-card-bg border border-card-border rounded-lg overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead className="bg-bg-main text-muted text-left">
                 <tr>
@@ -439,7 +439,7 @@ export default function AttendancePage() {
             <select
               value={historyStaffId}
               onChange={(e) => setHistoryStaffId(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-card-border bg-bg-main text-sm font-bold"
+              className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm font-bold"
             >
               {staff.map((s) => (
                 <option key={s._id} value={s._id}>
@@ -451,14 +451,14 @@ export default function AttendancePage() {
               type="month"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-card-border bg-bg-main text-sm"
+              className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm"
             />
             <span className="text-xs text-muted font-bold ml-auto">
               {historyStaff?.name}: Present {hPresent} • Half {hHalf} • Entry {historyList.length} din
             </span>
           </div>
 
-          <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden overflow-x-auto">
+          <div className="bg-card-bg border border-card-border rounded-lg overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
               <thead className="bg-bg-main text-muted text-left">
                 <tr>

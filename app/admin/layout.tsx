@@ -53,12 +53,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       eyebrow={isCashier ? "Cashier Panel" : "Restaurant Admin"}
       title={config.name}
       subtitle={isCashier ? "Walk-in order + hajira — simple kaj" : "Dokaner sob hisab ekhane"}
-      tenantName={config.name}
-      tenantMeta={user.role}
       accent="brand"
       sections={[
         {
-          title: "Overview",
+          title: "",
           items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }],
         },
         {

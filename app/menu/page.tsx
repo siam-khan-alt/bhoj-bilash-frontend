@@ -46,7 +46,7 @@ export default function PublicMenuPage() {
             {packages.map((p) => {
               const hasOffer = p.offerPrice && Number(p.offerPrice) > 0;
               return (
-                <div key={p._id} className="bg-card-bg border border-card-border rounded-2xl p-5">
+                <div key={p._id} className="bg-card-bg border border-card-border rounded-lg p-5">
                   <div className="flex items-center gap-2 mb-1">
                     <PkgIcon className="w-4 h-4 text-brand" />
                     <p className="font-black flex-1">{p.name}</p>
@@ -79,8 +79,8 @@ export default function PublicMenuPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {shown.map((f) => (
-            <div key={f._id} className="bg-card-bg border border-card-border rounded-2xl p-3">
-              <img src={f.image || "/placeholder-food.png"} alt={f.name} className="w-full h-28 object-cover rounded-xl mb-2" onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-food.png"; }} />
+            <div key={f._id} className="bg-card-bg border border-card-border rounded-lg p-3">
+              <img src={f.image || "/placeholder-food.png"} alt={f.name} className="w-full h-28 object-cover rounded-md mb-2" onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-food.png"; }} />
               <p className="font-bold text-sm">{f.name}</p>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-[11px] text-muted">{f.category}</span>

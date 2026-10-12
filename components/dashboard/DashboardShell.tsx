@@ -49,8 +49,6 @@ export default function DashboardShell({
   eyebrow,
   title,
   subtitle,
-  tenantName,
-  tenantMeta,
   accent = "brand",
   sections,
   children,
@@ -66,8 +64,6 @@ export default function DashboardShell({
     accent === "brand"
       ? "bg-brand text-white shadow-[0_8px_24px_-8px_rgba(220,38,38,0.7)]"
       : "bg-violet-600 text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.7)]";
-
-  const dotCls = accent === "brand" ? "bg-brand" : "bg-violet-500";
 
   const isActive = (href: string) =>
     href === "/admin" ? pathname === href : pathname.startsWith(href);
@@ -86,44 +82,27 @@ export default function DashboardShell({
         <div className={`absolute -top-16 -right-16 h-48 w-48 rounded-full blur-[70px] pointer-events-none ${isDark ? "bg-brand/20" : "bg-brand/10"}`} />
         <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-amber-500/10 blur-[70px] pointer-events-none" />
         <Link href="/" className="relative flex items-center gap-3">
-          <img src="/logo.png" alt="BiteBox OS" className="h-10 w-10 object-contain" />
+          <img src="/logo.png" alt="Bhoj Bilash" className="h-10 w-10 object-contain" />
           <div>
             <p className="text-lg font-black leading-none tracking-tight">
-              BiteBox <span className={accent === "brand" ? "text-brand" : "text-violet-500"}>OS</span>
+              Bhoj <span className={accent === "brand" ? "text-brand" : "text-violet-500"}>Bilash</span>
             </p>
             <p className={`mt-1 text-[10px] font-bold uppercase tracking-[0.2em] ${isDark ? "text-white/50" : "text-muted"}`}>
               {eyebrow}
             </p>
           </div>
         </Link>
-
-        {/* tenant card */}
-        {(tenantName || user) && (
-          <div className={`relative mt-5 rounded-2xl border p-3.5 ${isDark ? "border-white/10 bg-white/[0.04]" : "border-card-border bg-bg-main"}`}>
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${accent === "brand" ? "bg-brand/15 text-brand" : "bg-violet-500/15 text-violet-500"} font-black`}>
-                {(tenantName || user?.name || "B").charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black">{tenantName || user?.name}</p>
-                <p className={`truncate text-[11px] ${isDark ? "text-white/50" : "text-muted"}`}>{tenantMeta || user?.email}</p>
-              </div>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${dotCls} opacity-60`} />
-                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${dotCls}`} />
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* nav */}
-      <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-4 scrollbar-hide">
+      <nav className="mt-3 flex-1 space-y-6 overflow-y-auto px-3 pb-4 scrollbar-hide">
         {sections.map((sec) => (
-          <div key={sec.title}>
+          <div key={sec.title || "untitled"}>
+            {sec.title ? (
             <p className={`px-3 pb-2 text-[10px] font-black uppercase tracking-[0.2em] ${isDark ? "text-white/40" : "text-muted"}`}>
               {sec.title}
             </p>
+            ) : null}
             <div className="space-y-1">
               {sec.items.map((item) => {
                 const active = isActive(item.href);
@@ -133,7 +112,7 @@ export default function DashboardShell({
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-all ${
+                    className={`group flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-bold transition-all ${
                       active ? activeCls : isDark ? "text-white/70 hover:bg-white/[0.06] hover:text-white" : "text-muted hover:bg-bg-main hover:text-text-main"
                     }`}
                   >
@@ -156,13 +135,13 @@ export default function DashboardShell({
       <div className={`space-y-2 border-t p-3 ${isDark ? "border-white/10" : "border-card-border"}`}>
         <Link
           href="/"
-          className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition ${isDark ? "text-white/70 hover:bg-white/[0.06] hover:text-white" : "text-muted hover:bg-bg-main hover:text-text-main"}`}
+          className={`flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-bold transition ${isDark ? "text-white/70 hover:bg-white/[0.06] hover:text-white" : "text-muted hover:bg-bg-main hover:text-text-main"}`}
         >
           <Store className="h-4 w-4" /> View storefront
         </Link>
         <button
           onClick={handleLogout}
-          className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition ${isDark ? "text-white/70 hover:bg-red-500/15 hover:text-red-300" : "text-muted hover:bg-red-50 hover:text-red-600"}`}
+          className={`flex w-full items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-bold transition ${isDark ? "text-white/70 hover:bg-red-500/15 hover:text-red-300" : "text-muted hover:bg-red-50 hover:text-red-600"}`}
         >
           <LogOut className="h-4 w-4" /> Logout
         </button>
@@ -185,7 +164,7 @@ export default function DashboardShell({
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 overflow-hidden rounded-r-3xl">
+          <aside className="absolute inset-y-0 left-0 w-72 overflow-hidden rounded-r-lg">
             <button
               onClick={() => setOpen(false)}
               aria-label="Close menu"
@@ -206,18 +185,18 @@ export default function DashboardShell({
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="rounded-xl border border-card-border bg-card-bg p-2 lg:hidden"
+              className="rounded-md border border-card-border bg-card-bg p-2 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
-                BiteBox OS <span className="mx-1">/</span> {eyebrow}
+                Bhoj Bilash <span className="mx-1">/</span> {eyebrow}
               </p>
               <h1 className="truncate text-lg font-black sm:text-xl">{title}</h1>
               <p className="hidden truncate text-xs text-muted sm:block">{subtitle}</p>
             </div>
-            <div className="hidden min-w-0 flex-1 max-w-xs items-center gap-2 rounded-xl border border-card-border bg-card-bg px-3 py-2 md:flex">
+            <div className="hidden min-w-0 flex-1 max-w-xs items-center gap-2 rounded-md border border-card-border bg-card-bg px-3 py-2 md:flex">
               <Search className="h-4 w-4 shrink-0 text-muted" />
               <input
                 placeholder="Search orders, foods..."
@@ -231,7 +210,7 @@ export default function DashboardShell({
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="rounded-xl border border-card-border bg-card-bg p-2.5 transition hover:border-brand/40"
+              className="rounded-md border border-card-border bg-card-bg p-2.5 transition hover:border-brand/40"
             >
               {theme === "dark" ? (
                 <Sun className="h-4 w-4 text-amber-400" />
@@ -239,13 +218,13 @@ export default function DashboardShell({
                 <Moon className="h-4 w-4 text-slate-600" />
               )}
             </button>
-            <button aria-label="Notifications" className="relative rounded-xl border border-card-border bg-card-bg p-2.5 transition hover:border-brand/40">
+            <button aria-label="Notifications" className="relative rounded-md border border-card-border bg-card-bg p-2.5 transition hover:border-brand/40">
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-black text-white">
                 3
               </span>
             </button>
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl font-black text-white ${accent === "brand" ? "bg-gradient-to-br from-brand to-orange-600" : "bg-gradient-to-br from-violet-600 to-indigo-600"}`}>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-md font-black text-white ${accent === "brand" ? "bg-gradient-to-br from-brand to-orange-600" : "bg-gradient-to-br from-violet-600 to-indigo-600"}`}>
               {(user?.name || "A").charAt(0).toUpperCase()}
             </div>
           </div>

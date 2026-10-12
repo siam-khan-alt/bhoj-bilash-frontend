@@ -76,7 +76,7 @@ export default function HisabPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {cards.map((c) => (
-          <div key={c.label} className={`bg-card-bg border rounded-2xl p-5 ${c.hot ? "border-red-500/40" : "border-card-border"}`}>
+          <div key={c.label} className={`bg-card-bg border rounded-lg p-5 ${c.hot ? "border-red-500/40" : "border-card-border"}`}>
             <p className="text-xs text-muted font-bold uppercase tracking-wide">{c.label}</p>
             <p className={`text-2xl font-black mt-1 ${c.hot ? "text-red-500" : "text-text-main"}`}>{c.value}</p>
             <p className="text-xs text-muted mt-1">{c.sub}</p>
@@ -84,7 +84,7 @@ export default function HisabPage() {
         ))}
       </div>
 
-      <div className="bg-card-bg border border-card-border rounded-2xl p-5 mb-4">
+      <div className="bg-card-bg border border-card-border rounded-lg p-5 mb-4">
         <h3 className="font-black text-sm mb-3">Staff beton baki ({m})</h3>
         <div className="space-y-2 text-sm">
           {staff.map((s) => {

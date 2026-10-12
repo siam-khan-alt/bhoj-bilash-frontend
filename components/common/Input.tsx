@@ -18,7 +18,7 @@ export default function Input({ label, type = "text", error, ...props }: InputPr
       <div className="relative">
         <input
           type={isPassword ? (showPassword ? "text" : "password") : type}
-          className={`w-full px-4 py-3 rounded-xl bg-card-bg border ${error ? "border-red-500" : "border-card-border"} text-text-main placeholder-muted focus:outline-none focus:border-brand/50 transition`}
+          className={`w-full px-4 py-3 rounded-md bg-card-bg border ${error ? "border-red-500" : "border-card-border"} text-text-main placeholder-muted focus:outline-none focus:border-brand/50 transition`}
           {...props}
         />
         {isPassword && (

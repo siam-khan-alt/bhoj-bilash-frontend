@@ -74,7 +74,7 @@ export default function ManageOrders() {
         ))}
       </div>
 
-      <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden overflow-x-auto">
+      <div className="bg-card-bg border border-card-border rounded-lg overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[760px]">
           <thead className="bg-bg-main text-muted text-left">
             <tr>

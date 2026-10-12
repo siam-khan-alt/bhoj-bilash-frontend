@@ -36,9 +36,9 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-bg-main border-b border-card-border">
       <div className="container mx-auto px-6 lg:px-16 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-3 cursor-pointer group">
-          <img src="/logo.png" alt="BiteBox Icon" className="w-10 h-10 object-contain transform group-hover:rotate-6 transition-transform duration-300" />
+          <img src="/logo.png" alt="Bhoj Bilash" className="w-10 h-10 object-contain transform group-hover:rotate-6 transition-transform duration-300" />
           <span className="hidden sm:inline text-2xl font-black tracking-tight text-text-main">
-            Bite<span className="text-brand">Box</span>
+            Bhoj<span className="text-brand">Bilash</span>
           </span>
         </Link>
 

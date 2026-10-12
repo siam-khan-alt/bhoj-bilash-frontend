@@ -116,7 +116,7 @@ export default function PackagesPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSave} className="bg-card-bg border border-card-border rounded-2xl p-5 mb-6 space-y-4">
+        <form onSubmit={handleSave} className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Package nam" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
             <div>
@@ -154,7 +154,7 @@ export default function PackagesPage() {
                 {foods.map((f) => {
                   const sel = items.find((x) => x.foodId === f._id);
                   return (
-                    <div key={f._id} className={`border rounded-xl p-2 transition ${sel ? "border-brand/60 bg-brand/5" : "border-card-border bg-bg-main"}`}>
+                    <div key={f._id} className={`border rounded-md p-2 transition ${sel ? "border-brand/60 bg-brand/5" : "border-card-border bg-bg-main"}`}>
                       <button type="button" onClick={() => toggleFood(f._id)} className="w-full text-left">
                         <p className="font-bold text-xs truncate">{sel ? "☑ " : "☐ "}{f.name}</p>
                         <p className="text-[11px] text-muted">৳{f.price}</p>
@@ -182,7 +182,7 @@ export default function PackagesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {list.map((p) => (
-          <div key={p._id} className={`bg-card-bg border rounded-2xl p-5 ${p.active ? "border-card-border" : "border-card-border opacity-60"}`}>
+          <div key={p._id} className={`bg-card-bg border rounded-lg p-5 ${p.active ? "border-card-border" : "border-card-border opacity-60"}`}>
             <div className="flex justify-between items-start mb-1">
               <div className="flex items-center gap-2">
                 <PkgIcon className="w-4 h-4 text-brand" />
@@ -207,7 +207,7 @@ export default function PackagesPage() {
             </div>
             <button
               onClick={async () => { await updatePackage(p._id, { active: !p.active }); fetchAll(); }}
-              className={`w-full py-2 rounded-xl text-xs font-black border ${p.active ? "bg-accent/10 text-accent border-accent/30" : "bg-bg-main border-card-border text-muted"}`}
+              className={`w-full py-2 rounded-md text-xs font-black border ${p.active ? "bg-accent/10 text-accent border-accent/30" : "bg-bg-main border-card-border text-muted"}`}
             >
               {p.active ? "Chalu ache — tap kore bondho" : "Bondho — tap kore chalu"}
             </button>

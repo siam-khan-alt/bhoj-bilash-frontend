@@ -11,7 +11,8 @@ import type { StaffMember, SalaryPayment, Attendance } from "@/types";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError, showConfirm } from "@/components/common/Toast";
-import { Plus, Trash2, Wallet } from "lucide-react";
+import { Plus, Trash2, Wallet, Eye } from "lucide-react";
+import Link from "next/link";
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
@@ -80,17 +81,17 @@ export default function StaffPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
         <h2 className="text-xl font-black">Staff + Beton</h2>
         <div className="flex gap-2 items-center">
-          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="px-3 py-2 rounded-xl border border-card-border bg-bg-main text-sm" />
+          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm" />
           <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(!showForm)}>Add Staff</Button>
         </div>
       </div>
 
       {showForm && (
-        <form onSubmit={handleAdd} className="bg-card-bg border border-card-border rounded-2xl p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleAdd} className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Nam" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <div>
             <label className="text-xs font-black uppercase tracking-wide text-muted">Kaj</label>
-            <select value={form.job} onChange={(e) => setForm({ ...form, job: e.target.value })} className="mt-2 w-full px-4 py-3 rounded-xl bg-bg-main border border-card-border outline-none">
+            <select value={form.job} onChange={(e) => setForm({ ...form, job: e.target.value })} className="mt-2 w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none">
               <option value="baburchi">Baburchi</option>
               <option value="helper">Helper</option>
               <option value="cashier">Cashier</option>
@@ -113,7 +114,7 @@ export default function StaffPage() {
           const due = payable - paid;
           const c = countByStatus(attendance, s._id);
           return (
-            <div key={s._id} className="bg-card-bg border border-card-border rounded-2xl p-5">
+            <div key={s._id} className="bg-card-bg border border-card-border rounded-lg p-5">
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <p className="font-black">{s.name}</p>
@@ -124,10 +125,17 @@ export default function StaffPage() {
                   <button onClick={() => showConfirm(`${s.name} delete?`, async () => { await deleteStaff(s._id); showSuccess("Delete hoise"); fetchAll(); })} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
-              <p className="text-xs text-muted mb-3">Hajira: P:{c.present} H:{c.half} A:{c.absent} L:{c.leave} → Paoa: <b className="text-text-main">৳{payable}</b> • Deya: <b className="text-accent">৳{paid}</b> • Baki: <b className={due > 0 ? "text-red-500" : "text-accent"}>৳{due}</b></p>
-              <Button variant="secondary" className="w-full justify-center text-xs" icon={<Wallet className="w-3.5 h-3.5" />} onClick={() => { setPaying(s); setPayAmt(String(Math.max(due, 0))); setPayNote(""); }}>
-                Beton / Advance din
-              </Button>
+              <p className="text-xs text-muted mb-3">Hajira: P:{c.present} H:{c.half} A:{c.absent} L:{c.leave} → Paoa: <b className="text-text-main">৳{payable}</b> • Deya: <b className="text-accent">৳{paid}</b> • Baki: <b className={due > 0 ? "text-red-500" : "text-accent"}>৳{due}</b>{due < 0 ? <span className="text-accent"> (advance)</span> : ""}</p>
+              <div className="flex gap-2">
+                <Button variant="secondary" className="flex-1 justify-center text-xs" icon={<Wallet className="w-3.5 h-3.5" />} onClick={() => { setPaying(s); setPayAmt(String(Math.max(due, 0))); setPayNote(""); }}>
+                  Beton / Advance din
+                </Button>
+                <Link href={`/admin/staff/${s._id}?month=${month}`}>
+                  <Button variant="secondary" className="justify-center text-xs" icon={<Eye className="w-3.5 h-3.5" />}>
+                    Details
+                  </Button>
+                </Link>
+              </div>
               {payments.filter((p) => p.staffId === s._id).length > 0 && (
                 <div className="mt-3 text-xs space-y-1">
                   {payments.filter((p) => p.staffId === s._id).map((p) => (
@@ -143,7 +151,7 @@ export default function StaffPage() {
 
       {paying && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setPaying(null)}>
-          <div className="w-full max-w-sm bg-card-bg border border-card-border rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm bg-card-bg border border-card-border rounded-lg p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-black mb-1">{paying.name} ke taka din</h3>
             <p className="text-xs text-muted mb-4">{month} masher hisabe</p>
             <Input label="Taka (৳)" type="number" name="amt" value={payAmt} onChange={(e) => setPayAmt(e.target.value)} required />

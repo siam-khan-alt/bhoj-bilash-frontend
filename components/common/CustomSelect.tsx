@@ -36,7 +36,7 @@ export default function CustomSelect({ icon, value, options, onChange, placehold
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-card-bg border border-card-border text-text-main font-bold text-sm hover:border-brand/40 transition justify-between ${className || "min-w-[160px]"}`}
+        className={`flex items-center gap-2 px-4 py-3 rounded-md bg-card-bg border border-card-border text-text-main font-bold text-sm hover:border-brand/40 transition justify-between ${className || "min-w-[160px]"}`}
       >
         <span className="flex items-center gap-2">
           {icon}
@@ -46,7 +46,7 @@ export default function CustomSelect({ icon, value, options, onChange, placehold
       </button>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 w-full bg-card-bg border border-card-border rounded-xl shadow-xl overflow-hidden z-20">
+        <div className="absolute top-full mt-2 left-0 w-full bg-card-bg border border-card-border rounded-md shadow-xl overflow-hidden z-20">
           {options.map((opt) => (
             <button
               key={opt.value}

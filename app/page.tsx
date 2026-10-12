@@ -71,7 +71,7 @@ export default function HomePage() {
             {packages.map((p) => {
               const hasOffer = p.offerPrice && Number(p.offerPrice) > 0;
               return (
-                <div key={p._id} className="bg-card-bg border border-card-border rounded-2xl p-5 text-left">
+                <div key={p._id} className="bg-card-bg border border-card-border rounded-lg p-5 text-left">
                   <div className="flex items-center gap-2 mb-1">
                     <PkgIcon className="w-4 h-4 text-brand" />
                     <p className="font-black flex-1">{p.name}</p>

@@ -7,8 +7,8 @@ import { RestaurantProvider } from "@/context/RestaurantContext";
 import AppChrome from "@/components/layout/AppChrome";
 
 export const metadata: Metadata = {
-  title: "BiteBox — Dokan POS",
-  description: "Choto hotel er jonno simple POS + Hisab",
+  title: "Bhoj Bilash — Dokan POS",
+  description: "Bhoj Bilash er jonno simple POS + Hisab",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

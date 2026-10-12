@@ -6,8 +6,8 @@ import type { RestaurantConfig } from "@/types";
  */
 
 export const RESTAURANT_DEFAULT: RestaurantConfig = {
-  name: "Hotel Ruposhi",
-  slug: "ruposhi",
+  name: "Bhoj Bilash",
+  slug: "bhoj-bilash",
   logo: "/logo.png",
   address: "Dhaka, Bangladesh",
   phone: "+880 1700-000001",
@@ -15,13 +15,21 @@ export const RESTAURANT_DEFAULT: RestaurantConfig = {
 
 const STORAGE_KEY = "restaurant_config";
 
+// Purono name (Hotel Ruposhi / BiteBox) thakle auto migrate → Bhoj Bilash
+const LEGACY_NAMES = ["Hotel Ruposhi", "BiteBox", "BiteBox OS"];
+
 export function getRestaurantConfig(): RestaurantConfig {
   if (typeof window === "undefined") return { ...RESTAURANT_DEFAULT };
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved) as RestaurantConfig;
-      return { ...RESTAURANT_DEFAULT, ...parsed };
+      if (parsed.name && LEGACY_NAMES.includes(parsed.name)) {
+        const migrated = { ...RESTAURANT_DEFAULT, ...parsed, name: RESTAURANT_DEFAULT.name, slug: RESTAURANT_DEFAULT.slug, logo: "/logo.png" };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+        return migrated;
+      }
+      return { ...RESTAURANT_DEFAULT, ...parsed, logo: "/logo.png" };
     } catch {
       return { ...RESTAURANT_DEFAULT };
     }

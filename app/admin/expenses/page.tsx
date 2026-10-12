@@ -55,14 +55,14 @@ export default function ExpensesPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleAdd} className="bg-card-bg border border-card-border rounded-2xl p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleAdd} className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-black uppercase tracking-wide text-muted">Tarikh</label>
-            <input type="date" value={form.date} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setForm({ ...form, date: e.target.value })} className="mt-2 w-full px-4 py-3 rounded-xl bg-bg-main border border-card-border outline-none" />
+            <input type="date" value={form.date} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setForm({ ...form, date: e.target.value })} className="mt-2 w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none" />
           </div>
           <div>
             <label className="text-xs font-black uppercase tracking-wide text-muted">Khat</label>
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ExpenseCategory })} className="mt-2 w-full px-4 py-3 rounded-xl bg-bg-main border border-card-border outline-none">
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ExpenseCategory })} className="mt-2 w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none">
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
@@ -85,7 +85,7 @@ export default function ExpensesPage() {
         ))}
       </div>
 
-      <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden overflow-x-auto">
+      <div className="bg-card-bg border border-card-border rounded-lg overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[600px]">
           <thead className="bg-bg-main text-muted text-left">
             <tr>

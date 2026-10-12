@@ -101,7 +101,7 @@ export default function ManageFoods() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-card-bg border border-card-border rounded-2xl p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+          className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           <Input label="Name" name="name" value={formData.name} onChange={handleChange} required />
 
@@ -125,7 +125,7 @@ export default function ManageFoods() {
         </form>
       )}
 
-      <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden">
+      <div className="bg-card-bg border border-card-border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-bg-main text-muted text-left">
             <tr>

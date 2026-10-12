@@ -50,12 +50,12 @@ export default function Login() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
-      <div className="w-full max-w-md bg-card-bg border border-card-border rounded-2xl p-8 shadow-xl">
+      <div className="w-full max-w-md bg-card-bg border border-card-border rounded-lg p-8 shadow-xl">
         <h2 className="text-2xl font-black text-text-main mb-1 text-center">Dokan Login</h2>
         <p className="text-center text-sm text-muted mb-6">Admin ba Cashier — 2 ta role e shesh</p>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-500 text-sm p-3 rounded-xl mb-4">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-500 text-sm p-3 rounded-md mb-4">
             {error}
           </div>
         )}

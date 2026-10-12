@@ -10,7 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 export default function Button({ children, variant = "primary", icon, className = "", ...props }: ButtonProps) {
   const baseStyle =
-    "rounded-xl font-bold transition-all text-xs tracking-wide flex items-center justify-center space-x-2 cursor-pointer active:scale-95";
+    "rounded-md font-bold transition-all text-xs tracking-wide flex items-center justify-center space-x-2 cursor-pointer active:scale-95";
 
   const variants: Record<Variant, string> = {
     primary: "group bg-brand hover:bg-brand-hover text-white shadow-lg shadow-brand/20 transform hover:-translate-y-0.5 px-7 py-3.5",
