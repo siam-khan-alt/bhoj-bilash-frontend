@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getExpenses, addExpense, deleteExpense, EXPENSE_CATEGORIES } from "@/lib/api/expenses";
-import type { Expense, ExpenseCategory } from "@/types";
+import { getExpenses, addExpense, deleteExpense, updateExpense } from "@/lib/api/expenses";
+import { getOptions, optionLabel } from "@/lib/api/options";
+import type { Expense, ExpenseCategory, OptionItem } from "@/types";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError, showConfirm } from "@/components/common/Toast";
@@ -12,16 +13,22 @@ import { Plus, Trash2 } from "lucide-react";
 
 export default function ExpensesPage() {
   const { user } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [list, setList] = useState<Expense[]>([]);
+  const [heads, setHeads] = useState<OptionItem[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState("all");
   const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), category: "bazar" as ExpenseCategory, note: "", amount: "" });
 
   const fetchAll = async () => setList(await getExpenses());
+  const headName = (v: string) => optionLabel(heads, v, lang);
 
   useEffect(() => {
     fetchAll();
+    getOptions("expense_head", true).then((rows) => {
+      setHeads(rows);
+      setForm((f) => (rows.some((r) => r.value === f.category) ? f : { ...f, category: rows[0]?.value ?? f.category }));
+    }).catch(() => {});
   }, []);
 
   const filtered = list.filter((e) => {
@@ -65,8 +72,8 @@ export default function ExpensesPage() {
           <div>
             <label className="text-xs font-black uppercase tracking-wide text-muted">{t("exp.cat")}</label>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ExpenseCategory })} className="mt-2 w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none">
-              {EXPENSE_CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>{t(`exp.cat.${c.value}`)}</option>
+              {heads.map((c) => (
+                <option key={c._id} value={c.value}>{headName(c.value)}</option>
               ))}
             </select>
           </div>
@@ -80,9 +87,9 @@ export default function ExpensesPage() {
       )}
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {["all", "today", "month", "bazar", "salary", "rent", "utility", "other"].map((f) => (
+        {["all", "today", "month", ...heads.map((h) => h.value)].map((f) => (
           <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-black border ${filter === f ? "bg-brand text-white border-brand" : "bg-card-bg border-card-border text-muted"}`}>
-            {f === "all" ? t("exp.all") : f === "today" ? t("exp.today") : f === "month" ? t("exp.month") : t(`exp.cat.${f}`)}
+            {f === "all" ? t("exp.all") : f === "today" ? t("exp.today") : f === "month" ? t("exp.month") : headName(f)}
           </button>
         ))}
       </div>
@@ -102,7 +109,7 @@ export default function ExpensesPage() {
             {filtered.map((e) => (
               <tr key={e._id} className="border-t border-card-border">
                 <td className="p-3 text-muted">{e.date}</td>
-                <td className="p-3"><span className="text-[11px] font-black px-2 py-1 rounded-full bg-brand/10 text-brand">{t(`exp.cat.${e.category}`)}</span></td>
+                <td className="p-3"><span className="text-[11px] font-black px-2 py-1 rounded-full bg-brand/10 text-brand">{headName(e.category)}</span></td>
                 <td className="p-3 font-bold">{e.note}</td>
                 <td className="p-3 font-black text-red-500">৳{e.amount}</td>
                 <td className="p-3">

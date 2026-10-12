@@ -22,14 +22,6 @@ function setStored(list: Expense[]) {
   if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(list));
 }
 
-export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
-  { value: "bazar", label: "Bazar (kachamal)" },
-  { value: "salary", label: "Beton / Advance" },
-  { value: "rent", label: "Dokan vara" },
-  { value: "utility", label: "Current / Gas / Pani" },
-  { value: "other", label: "Onno" },
-];
-
 export async function getExpenses(): Promise<Expense[]> {
   await delay();
   return [...getStored()].reverse();
@@ -55,4 +47,18 @@ export async function addExpense(data: { date: string; category: ExpenseCategory
 export async function deleteExpense(id: string): Promise<void> {
   await delay();
   setStored(getStored().filter((e) => e._id !== id));
+}
+
+export async function updateExpense(id: string, patch: Partial<Pick<Expense, "date" | "category" | "note" | "amount">>): Promise<Expense> {
+  await delay();
+  const list = getStored();
+  const idx = list.findIndex((e) => e._id === id);
+  if (idx === -1) throw new Error("exp.notFound");
+  list[idx] = {
+    ...list[idx],
+    ...patch,
+    ...(patch.amount !== undefined ? { amount: Number(patch.amount) } : {}),
+  };
+  setStored(list);
+  return list[idx];
 }

@@ -1,5 +1,6 @@
 "use client";
 import { getFoods, addFood, updateFood, deleteFood } from "@/lib/api/food";
+import { getOptions, addOption } from "@/lib/api/options";
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -16,9 +17,16 @@ export default function ManageFoods() {
   const [showForm, setShowForm] = useState(false);
   const [editingFood, setEditingFood] = useState<import('@/types').Food | null>(null);
   const [formData, setFormData] = useState({ name: "", category: "", price: "", image: "" });
+  const [optCats, setOptCats] = useState<string[]>([]);
+  const [sizes, setSizes] = useState<string[]>(["250ml", "500ml", "1L"]);
 
   useEffect(() => {
     fetchFoods();
+    getOptions("food_category", true).then((rows) => setOptCats(rows.map((r) => r.value))).catch(() => {});
+    getOptions("drink_size", true).then((rows) => {
+      const v = rows.map((r) => r.value);
+      if (v.length > 0) setSizes(v);
+    }).catch(() => {});
   }, []);
 
   const fetchFoods = async () => {
@@ -32,7 +40,7 @@ export default function ManageFoods() {
     }
   };
 
-  const existingCategories = [...new Set(foods.map((food) => food.category))];
+  const existingCategories = [...new Set([...optCats, ...foods.map((food) => food.category)])];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -111,6 +119,11 @@ export default function ManageFoods() {
             categories={existingCategories}
             value={formData.category}
             onChange={handleCategoryChange}
+            onAddNew={(v) => {
+              addOption("food_category", { value: v }).then(() =>
+                getOptions("food_category", true).then((rows) => setOptCats(rows.map((r) => r.value))).catch(() => {})
+              ).catch(() => {});
+            }}
           />
 
           {formData.category === "Drinks" && (
@@ -119,7 +132,7 @@ export default function ManageFoods() {
                 {t("foods.size")}
               </p>
               <div className="flex flex-wrap gap-2">
-                {["250ml", "500ml", "1L"].map((s) => {
+                {sizes.map((s) => {
                   const active = new RegExp(`\\b${s}$`, "i").test(formData.name.trim());
                   return (
                     <button

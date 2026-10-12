@@ -3,18 +3,19 @@
 import { useState, useEffect } from "react";
 import { getFoods } from "@/lib/api/food";
 import { createOrder } from "@/lib/api/orders";
+import { getOptions, optionLabel } from "@/lib/api/options";
 import { getPackages, effectivePrice } from "@/lib/api/packages";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLang } from "@/context/LanguageContext";
 import BillReceipt from "@/components/pos/BillReceipt";
-import type { Food, Package, Order } from "@/types";
+import type { Food, Package, Order, OptionItem } from "@/types";
 import Button from "@/components/common/Button";
 import { showSuccess, showError } from "@/components/common/Toast";
 import { Plus, Trash2, UtensilsCrossed, ShoppingBag, Check, Minus, Package as PkgIcon, Printer, X, Search } from "lucide-react";
 
 export default function POSPage() {
   const { config } = useRestaurant();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [foods, setFoods] = useState<Food[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
 
@@ -24,7 +25,8 @@ export default function POSPage() {
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerPhone, setCustomerPhone] = useState("");
-  const [payment, setPayment] = useState<"cash" | "card">("cash");
+  const [methods, setMethods] = useState<OptionItem[]>([]);
+  const [payment, setPayment] = useState("cash");
   const [dineIn, setDineIn] = useState(true);
   const [parcel, setParcel] = useState(false);
   const [discount, setDiscount] = useState("");
@@ -38,6 +40,10 @@ export default function POSPage() {
   useEffect(() => {
     getFoods().then(setFoods);
     getPackages(true).then(setPackages);
+    getOptions("payment_method", true).then((rows) => {
+      setMethods(rows);
+      setPayment((p) => (rows.some((r) => r.value === p) ? p : rows[0]?.value ?? p));
+    }).catch(() => {});
   }, []);
 
   const foodById = (id: string) => foods.find((f) => f._id === id);
@@ -290,12 +296,11 @@ export default function POSPage() {
           </div>
           {!dineIn && !parcel && <p className="text-[11px] text-amber-500 font-bold">{t("pos.neither")}</p>}
           <div className="flex gap-2">
-            <button onClick={() => setPayment("cash")} className={`flex-1 py-2 rounded-md font-bold text-xs border ${payment === "cash" ? "bg-brand text-white border-brand" : "bg-bg-main border-card-border"}`}>
-              {t("pos.cash")}
-            </button>
-            <button onClick={() => setPayment("card")} className={`flex-1 py-2 rounded-md font-bold text-xs border ${payment === "card" ? "bg-brand text-white border-brand" : "bg-bg-main border-card-border"}`}>
-              {t("pos.card")}
-            </button>
+            {(methods.length > 0 ? methods : [{ _id: "cash", value: "cash" } as OptionItem]).map((m) => (
+              <button key={m._id} onClick={() => setPayment(m.value)} className={`flex-1 py-2 rounded-md font-bold text-xs border ${payment === m.value ? "bg-brand text-white border-brand" : "bg-bg-main border-card-border"}`}>
+                {optionLabel(methods, m.value, lang)}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -321,7 +326,7 @@ export default function POSPage() {
         </div>
 
         <Button variant="primary" className="w-full justify-center" onClick={handlePlace}>
-          {t("pos.place", { m: payment === "cash" ? t("pos.cash") : t("pos.card") })}
+          {t("pos.place", { m: optionLabel(methods, payment, lang) })}
         </Button>
         <p className="text-xs text-muted mt-2 text-center">{t("pos.billHint")}</p>
         </div>

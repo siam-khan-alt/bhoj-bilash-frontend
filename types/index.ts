@@ -69,6 +69,26 @@ export interface Review {
   createdAt: string;
 }
 
+// ---- Option Lists (settings-managed dropdown/filter values) ----
+
+export type OptionListKey =
+  | "food_category"
+  | "staff_job"
+  | "expense_head"
+  | "payment_method"
+  | "drink_size";
+
+export interface OptionItem {
+  _id: string;
+  key: OptionListKey;
+  value: string; // code-e save hoy (jemon "bazar", "bkash", "500ml")
+  label_bn: string;
+  label_en: string;
+  sort: number;
+  active: boolean;
+  createdAt: string;
+}
+
 // ---- Khata (staff + attendance + expense + salary) ----
 
 export interface StaffMember {
@@ -94,7 +114,7 @@ export interface Attendance {
   createdAt: string;
 }
 
-export type ExpenseCategory = "bazar" | "salary" | "rent" | "utility" | "other";
+export type ExpenseCategory = string; // settings → Option Lists theke ase (bazar/salary/rent/utility/other default)
 
 export interface Expense {
   _id: string;

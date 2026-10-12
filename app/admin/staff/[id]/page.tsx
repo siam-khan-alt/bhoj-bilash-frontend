@@ -7,8 +7,9 @@ import { useAuth } from "@/context/AuthContext";
 import { getStaff, updateStaff } from "@/lib/api/staff";
 import { getSalaryPayments, paySalary } from "@/lib/api/salary";
 import { getAttendanceByMonth, workHours } from "@/lib/api/attendance";
+import { getOptions, optionLabel } from "@/lib/api/options";
 import { monthPayable, countByStatus, perDaySalary } from "@/lib/salary";
-import type { StaffMember, SalaryPayment, Attendance, AttendanceStatus } from "@/types";
+import type { StaffMember, SalaryPayment, Attendance, AttendanceStatus, OptionItem } from "@/types";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError } from "@/components/common/Toast";
@@ -51,7 +52,7 @@ const JOB_STYLE: Record<string, string> = {
 
 export default function StaffDetailsPage() {
   const { user } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const router = useRouter();
   const params = useParams();
   const search = useSearchParams();
@@ -59,6 +60,7 @@ export default function StaffDetailsPage() {
 
   const [month, setMonth] = useState(search.get("month") || currentMonth());
   const [staff, setStaff] = useState<StaffMember | null>(null);
+  const [jobOpts, setJobOpts] = useState<OptionItem[]>([]);
   const [monthAtt, setMonthAtt] = useState<Attendance[]>([]);
   const [monthPay, setMonthPay] = useState<SalaryPayment[]>([]);
   const [allPay, setAllPay] = useState<SalaryPayment[]>([]);
@@ -97,6 +99,7 @@ export default function StaffDetailsPage() {
 
   useEffect(() => {
     fetchAll(month);
+    getOptions("staff_job", true).then(setJobOpts).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, month]);
 
@@ -236,7 +239,7 @@ export default function StaffDetailsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-black">{staff.name}</h1>
               <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${JOB_STYLE[staff.job] || JOB_STYLE.other}`}>
-                {t("staff.job" + staff.job.charAt(0).toUpperCase() + staff.job.slice(1))}
+                {optionLabel(jobOpts, staff.job, lang)}
               </span>
               <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${staff.active ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
                 {staff.active ? t("c.active") : t("c.off")}
@@ -260,10 +263,9 @@ export default function StaffDetailsPage() {
             <div>
               <label className="text-sm font-bold text-text-main block mb-1.5">{t("staff.job")}</label>
               <select value={editForm.job} onChange={(e) => setEditForm({ ...editForm, job: e.target.value })} className="w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none text-sm">
-                <option value="baburchi">{t("staff.jobBaburchi")}</option>
-                <option value="helper">{t("staff.jobHelper")}</option>
-                <option value="cashier">{t("staff.jobCashier")}</option>
-                <option value="other">{t("staff.jobOther")}</option>
+                {jobOpts.map((j) => (
+                  <option key={j._id} value={j.value}>{optionLabel(jobOpts, j.value, lang)}</option>
+                ))}
               </select>
             </div>
             <Input label={t("staff.salary")} type="number" name="monthlySalary" value={editForm.monthlySalary} onChange={(e) => setEditForm({ ...editForm, monthlySalary: e.target.value })} required />

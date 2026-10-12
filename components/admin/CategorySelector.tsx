@@ -4,7 +4,7 @@ import { Plus, X } from "lucide-react";
 import CustomSelect from "@/components/common/CustomSelect";
 import { useLang } from "@/context/LanguageContext";
 
-export default function CategorySelector({ categories, value, onChange }: { categories: string[]; value: string; onChange: (v: string) => void }) {
+export default function CategorySelector({ categories, value, onChange, onAddNew }: { categories: string[]; value: string; onChange: (v: string) => void; onAddNew?: (v: string) => void }) {
   const { t } = useLang();
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newCategory, setNewCategory] = useState("");
@@ -23,6 +23,7 @@ export default function CategorySelector({ categories, value, onChange }: { cate
   const handleConfirmNew = () => {
     if (newCategory.trim()) {
       onChange(newCategory.trim());
+      onAddNew?.(newCategory.trim());
       setIsAddingNew(false);
     }
   };

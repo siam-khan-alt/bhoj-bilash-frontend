@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { getStaff, addStaff, updateStaff, deleteStaff } from "@/lib/api/staff";
 import { getSalaryPayments, paySalary } from "@/lib/api/salary";
 import { getAttendanceByMonth } from "@/lib/api/attendance";
+import { getOptions, optionLabel } from "@/lib/api/options";
 import { monthPayable, countByStatus } from "@/lib/salary";
-import type { StaffMember, SalaryPayment, Attendance } from "@/types";
+import type { StaffMember, SalaryPayment, Attendance, OptionItem } from "@/types";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError, showConfirm } from "@/components/common/Toast";
 import { useLang } from "@/context/LanguageContext";
-import { jobKey } from "@/lib/i18n/dict";
 import { Plus, Trash2, Wallet, Eye } from "lucide-react";
 import Link from "next/link";
 
@@ -20,9 +20,10 @@ const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 export default function StaffPage() {
   const { user } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [jobOpts, setJobOpts] = useState<OptionItem[]>([]);
   const [payments, setPayments] = useState<SalaryPayment[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [month, setMonth] = useState(currentMonth());
@@ -45,6 +46,10 @@ export default function StaffPage() {
 
   useEffect(() => {
     fetchAll();
+    getOptions("staff_job", true).then((rows) => {
+      setJobOpts(rows);
+      setForm((f) => (rows.some((r) => r.value === f.job) ? f : { ...f, job: rows[0]?.value ?? f.job }));
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
 
@@ -95,10 +100,9 @@ export default function StaffPage() {
           <div>
             <label className="text-xs font-black uppercase tracking-wide text-muted">{t("staff.job")}</label>
             <select value={form.job} onChange={(e) => setForm({ ...form, job: e.target.value })} className="mt-2 w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none">
-              <option value="baburchi">{t("staff.jobBaburchi")}</option>
-              <option value="helper">{t("staff.jobHelper")}</option>
-              <option value="cashier">{t("staff.jobCashier")}</option>
-              <option value="other">{t("staff.jobOther")}</option>
+              {jobOpts.map((j) => (
+                <option key={j._id} value={j.value}>{optionLabel(jobOpts, j.value, lang)}</option>
+              ))}
             </select>
           </div>
           <Input label={t("staff.phone")} name="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
@@ -121,7 +125,7 @@ export default function StaffPage() {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <p className="font-black">{s.name}</p>
-                  <p className="text-xs text-muted">{t(jobKey(s.job))} • {s.phone} • {t("staff.beton")} ৳{s.monthlySalary}</p>
+                  <p className="text-xs text-muted">{optionLabel(jobOpts, s.job, lang)} • {s.phone} • {t("staff.beton")} ৳{s.monthlySalary}</p>
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => showConfirm(t("staff.archConfirm", { name: s.name }), async () => { await updateStaff(s._id, { active: false }); fetchAll(); })} className="text-xs text-muted hover:text-red-500 px-2 py-1">{t("c.off")}</button>

@@ -10,10 +10,10 @@ import {
   todayBD,
   workHours,
 } from "@/lib/api/attendance";
-import type { StaffMember, Attendance, AttendanceStatus } from "@/types";
+import type { StaffMember, Attendance, AttendanceStatus, OptionItem } from "@/types";
 import { showError, showSuccess } from "@/components/common/Toast";
 import { useLang } from "@/context/LanguageContext";
-import { jobKey } from "@/lib/i18n/dict";
+import { getOptions, optionLabel } from "@/lib/api/options";
 import { Check, X, Minus, Palmtree, Clock } from "lucide-react";
 
 const OPTS: { v: AttendanceStatus; labelKey: string; icon: React.ReactNode; cls: string }[] = [
@@ -41,9 +41,11 @@ const currentMonth = () => new Date().toISOString().slice(0, 7);
 type Tab = "daily" | "monthly" | "history";
 
 export default function AttendancePage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [tab, setTab] = useState<Tab>("daily");
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [jobOpts, setJobOpts] = useState<OptionItem[]>([]);
+  const jobName = (job: string) => optionLabel(jobOpts, job, lang);
 
   // ---- daily ----
   const [date, setDate] = useState(todayBD());
@@ -94,6 +96,7 @@ export default function AttendancePage() {
       setStaff((prev) => (prev.length ? prev : act));
       if (!historyStaffId && act.length) setHistoryStaffId(act[0]._id);
     });
+    getOptions("staff_job", true).then(setJobOpts).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -269,7 +272,7 @@ export default function AttendancePage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-black text-sm truncate">{s.name}</p>
                       <p className="text-[11px] text-muted">
-                        {t(jobKey(s.job))} • {hrs !== null ? <span className="text-accent font-bold">{t("att.dutyDone", { h: hrs })}</span> : t("att.dutyLeft")}
+                        {jobName(s.job)} • {hrs !== null ? <span className="text-accent font-bold">{t("att.dutyDone", { h: hrs })}</span> : t("att.dutyLeft")}
                       </p>
                     </div>
                     {rec ? (
@@ -413,7 +416,7 @@ export default function AttendancePage() {
                     <td className="p-3">
                       <p className="font-black text-text-main">{r.staff.name}</p>
                       <p className="text-[11px] text-muted">
-                        {t(jobKey(r.staff.job))} • {t("att.effective", { n: r.present + r.half * 0.5 })}
+                        {jobName(r.staff.job)} • {t("att.effective", { n: r.present + r.half * 0.5 })}
                       </p>
                     </td>
                     <td className="p-3 text-center font-black text-accent">{r.present}</td>
@@ -445,7 +448,7 @@ export default function AttendancePage() {
             >
               {staff.map((s) => (
                 <option key={s._id} value={s._id}>
-                  {s.name} — {t(jobKey(s.job))}
+                  {s.name} — {jobName(s.job)}
                 </option>
               ))}
             </select>
