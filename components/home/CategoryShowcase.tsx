@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LayoutGrid, ArrowRight } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { isPlainWater } from "@/lib/bestsellers";
 import type { Food } from "@/types";
 
 /** Menu category cards — real foods theke group, tap → /menu. */
@@ -18,7 +19,7 @@ export default function CategoryShowcase({ foods }: { foods: Food[] }) {
     list.push(f);
     byCat.set(f.category, list);
   }
-  const cats = [...byCat.entries()].slice(0, 4);
+  const cats = [...byCat.entries()].slice(0, 6);
 
   return (
     <section className="mt-16">
@@ -32,15 +33,18 @@ export default function CategoryShowcase({ foods }: { foods: Food[] }) {
         <p className="text-muted text-xs mt-1">{t("home.catSub")}</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {cats.map(([cat, items]) => (
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {cats.map(([cat, items]) => {
+          // cover: pani kokhonoi na — Coca-Cola/Mojo type item prefer
+          const cover = items.find((f) => !isPlainWater(f)) ?? items[0];
+          return (
           <Link
             key={cat}
             href="/menu"
             className="group relative rounded-lg overflow-hidden border border-card-border h-36 sm:h-44"
           >
             <img
-              src={items[0]?.image || "/placeholder-food.png"}
+              src={cover?.image || "/placeholder-food.png"}
               alt={cat}
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               onError={(e) => {
@@ -60,7 +64,8 @@ export default function CategoryShowcase({ foods }: { foods: Food[] }) {
               </span>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

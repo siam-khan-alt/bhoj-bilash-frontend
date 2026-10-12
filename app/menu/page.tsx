@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLang } from "@/context/LanguageContext";
 import { getFoods } from "@/lib/api/food";
+import { isPlainWater } from "@/lib/bestsellers";
 import { getPackages, effectivePrice } from "@/lib/api/packages";
 import type { Food, Package } from "@/types";
 import { BadgePercent, Package as PkgIcon, MapPin, Phone } from "lucide-react";
@@ -17,7 +18,7 @@ export default function PublicMenuPage() {
   const [cat, setCat] = useState("all");
 
   useEffect(() => {
-    getFoods().then((f) => setFoods(f.filter((x) => x.available !== false))).catch(() => {});
+    getFoods().then((f) => setFoods(f.filter((x) => x.available !== false && !isPlainWater(x)))).catch(() => {});
     getPackages(true).then(setPackages).catch(() => {});
   }, []);
 

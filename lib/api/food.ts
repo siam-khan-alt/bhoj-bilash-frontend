@@ -4,12 +4,41 @@ import { mockFoods } from "@/lib/mocks/foods";
 const STORAGE_KEY = "mock_foods";
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 
+/** Purono seed name → notun size-wala name. Sudhu untouched item-e apply hobe (admin edit korle skip). */
+const LEGACY_FIX: Record<string, { from: string; name: string; price: number }> = {
+  food_013: { from: "Mineral Water", name: "Mineral Water 500ml", price: 20 },
+  food_014: { from: "Coca-Cola", name: "Coca-Cola 500ml", price: 40 },
+  food_015: { from: "Mojo", name: "Mojo 500ml", price: 40 },
+  food_016: { from: "SevenUp", name: "SevenUp 500ml", price: 40 },
+  food_017: { from: "Fanta", name: "Fanta 500ml", price: 45 },
+};
+
 function getStoredFoods(): Food[] {
   if (typeof window === "undefined") return [...mockFoods];
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      let list = JSON.parse(saved) as Food[];
+      let changed = false;
+      // 1) legacy rename — admin na bodlale size-wala name + dam bosbe
+      list = list.map((f) => {
+        const fix = LEGACY_FIX[f._id];
+        if (fix && f.name === fix.from) {
+          changed = true;
+          return { ...f, name: fix.name, price: fix.price };
+        }
+        return f;
+      });
+      // 2) seed migration — notun item (jemon 250ml) purono browser-eo dhukbe
+      const ids = new Set(list.map((f) => f._id));
+      const missing = mockFoods.filter((f) => !ids.has(f._id));
+      let merged = list;
+      if (missing.length > 0) {
+        merged = [...list, ...missing];
+        changed = true;
+      }
+      if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return merged;
     } catch {
       return [...mockFoods];
     }

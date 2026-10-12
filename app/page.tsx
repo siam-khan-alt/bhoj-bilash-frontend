@@ -5,9 +5,10 @@ import { useLang } from "@/context/LanguageContext";
 import { getPackages, effectivePrice } from "@/lib/api/packages";
 import { getFoods } from "@/lib/api/food";
 import { getAllOrders } from "@/lib/api/orders";
-import { getBestSellers, type BestSeller } from "@/lib/bestsellers";
+import { getBestSellers, getPopularDrinks, type BestSeller } from "@/lib/bestsellers";
 import type { Package, Food } from "@/types";
 import BestSellers from "@/components/home/BestSellers";
+import PopularDrinks from "@/components/home/PopularDrinks";
 import HeroSlider from "@/components/home/HeroSlider";
 import CategoryShowcase from "@/components/home/CategoryShowcase";
 import OfferBanner from "@/components/home/OfferBanner";
@@ -23,6 +24,7 @@ export default function HomePage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [foods, setFoods] = useState<Food[]>([]);
   const [best, setBest] = useState<BestSeller[]>([]);
+  const [drinks, setDrinks] = useState<BestSeller[]>([]);
 
   useEffect(() => {
     getPackages(true).then(setPackages).catch(() => {});
@@ -30,6 +32,7 @@ export default function HomePage() {
       .then(([f, orders]) => {
         setFoods(f);
         setBest(getBestSellers(f, orders, 8));
+        setDrinks(getPopularDrinks(f, orders, 4));
       })
       .catch(() => {});
   }, []);
@@ -43,6 +46,8 @@ export default function HomePage() {
       <CategoryShowcase foods={foods} />
 
       <BestSellers items={best} />
+
+      <PopularDrinks items={drinks} />
 
       <OfferBanner packages={packages} foods={foods} />
 

@@ -113,6 +113,36 @@ export default function ManageFoods() {
             onChange={handleCategoryChange}
           />
 
+          {formData.category === "Drinks" && (
+            <div className="sm:col-span-2">
+              <p className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
+                {t("foods.size")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["250ml", "500ml", "1L"].map((s) => {
+                  const active = new RegExp(`\\b${s}$`, "i").test(formData.name.trim());
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        const base = formData.name.replace(/\s*\d+\s?(ml|l)\s*$/i, "").trim();
+                        setFormData({ ...formData, name: base ? `${base} ${s}` : s });
+                      }}
+                      className={`px-4 py-1.5 rounded-full text-xs font-black border cursor-pointer ${
+                        active
+                          ? "bg-brand text-white border-brand"
+                          : "bg-bg-main border-card-border text-muted hover:border-brand/50"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <Input label={t("foods.price")} type="number" name="price" value={formData.price} onChange={handleChange} required />
           <Input label={t("foods.img")} name="image" value={formData.image} onChange={handleChange} />
 

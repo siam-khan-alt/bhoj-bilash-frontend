@@ -4,13 +4,14 @@ import { useRef } from "react";
 import Link from "next/link";
 import { Camera, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { isPlainWater } from "@/lib/bestsellers";
 import type { Food } from "@/types";
 
-/** Food photo strip — real menu images, scroll + arrow, tap → /menu. */
+/** Food photo strip — real menu images, scroll + arrow, tap → /menu. Pani bad. */
 export default function Gallery({ foods }: { foods: Food[] }) {
   const { t } = useLang();
   const rowRef = useRef<HTMLDivElement>(null);
-  const photos = foods.filter((f) => f.available !== false && f.image && !f.image.includes("placeholder"));
+  const photos = foods.filter((f) => f.available !== false && !isPlainWater(f) && f.image && !f.image.includes("placeholder"));
   if (photos.length === 0) return null;
 
   const scrollBy = (dir: number) => {
