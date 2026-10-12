@@ -2,13 +2,14 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { useLang } from "@/context/LanguageContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
   LayoutDashboard,
   UtensilsCrossed,
   ClipboardList,
-  ShoppingCart,
+  ReceiptText,
   Users,
   CalendarCheck,
   Receipt,
@@ -28,6 +29,7 @@ const CASHIER_BLOCKED = ["/admin/foods", "/admin/packages", "/admin/staff", "/ad
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { config } = useRestaurant();
+  const { t } = useLang();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -41,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || (user.role !== "admin" && user.role !== "cashier")) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-main">
-        <p className="text-muted font-bold">Checking access...</p>
+        <p className="text-muted font-bold">{t("c.checking")}</p>
       </div>
     );
   }
@@ -50,43 +52,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <DashboardShell
-      eyebrow={isCashier ? "Cashier Panel" : "Restaurant Admin"}
+      eyebrow={isCashier ? t("shell.cashierPanel") : t("shell.adminPanel")}
       title={config.name}
-      subtitle={isCashier ? "Walk-in order + hajira — simple kaj" : "Dokaner sob hisab ekhane"}
+      subtitle={isCashier ? t("shell.cashierSub") : t("shell.adminSub")}
       accent="brand"
       sections={[
         {
           title: "",
-          items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }],
+          items: [{ href: "/admin" as const, label: t("nav.dashboard"), icon: LayoutDashboard }],
         },
         {
-          title: "Dokan",
+          title: t("sec.shop"),
           items: [
             ...(isCashier
               ? []
               : [
-                  { href: "/admin/foods" as const, label: "Manage Foods", icon: UtensilsCrossed },
-                  { href: "/admin/packages" as const, label: "Package + Offer", icon: PkgIcon },
+                  { href: "/admin/foods" as const, label: t("nav.foods"), icon: UtensilsCrossed },
+                  { href: "/admin/packages" as const, label: t("nav.packages"), icon: PkgIcon },
                 ]),
-            { href: "/admin/orders" as const, label: "Manage Orders", icon: ClipboardList },
+            { href: "/admin/orders" as const, label: t("nav.orders"), icon: ClipboardList },
           ],
         },
         {
-          title: "Operations",
+          title: t("sec.ops"),
           items: [
-            { href: "/admin/pos" as const, label: "POS Terminal", icon: ShoppingCart, badge: "LIVE" },
-            { href: "/admin/attendance" as const, label: "Hajira", icon: CalendarCheck },
-            { href: "/admin/expenses" as const, label: "Khoroc", icon: Receipt },
+            { href: "/admin/pos" as const, label: t("nav.pos"), icon: ReceiptText, badge: "LIVE" },
+            { href: "/admin/attendance" as const, label: t("nav.hajira"), icon: CalendarCheck },
+            { href: "/admin/expenses" as const, label: t("nav.expense"), icon: Receipt },
           ],
         },
         ...(isCashier
           ? []
           : [
               {
-                title: "Khata",
+                title: t("sec.khata"),
                 items: [
-                  { href: "/admin/staff" as const, label: "Staff + Beton", icon: Users },
-                  { href: "/admin/hisab" as const, label: "Hisab Nikash", icon: Calculator, badge: "NEW" },
+                  { href: "/admin/staff" as const, label: t("nav.staff"), icon: Users },
+                  { href: "/admin/hisab" as const, label: t("nav.hisab"), icon: Calculator, badge: "NEW" },
                 ],
               },
             ]),

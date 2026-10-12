@@ -74,7 +74,7 @@ export async function updateAttendanceTimes(
   await delay();
   const list = getStored();
   const idx = list.findIndex((a) => a.staffId === staffId && a.date === date);
-  if (idx === -1) throw new Error("Age status diye hajira nin");
+  if (idx === -1) throw new Error("err.hajiraFirst");
   list[idx] = { ...list[idx], ...patch };
   setStored(list);
   return list[idx];

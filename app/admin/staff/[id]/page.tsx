@@ -12,6 +12,7 @@ import type { StaffMember, SalaryPayment, Attendance, AttendanceStatus } from "@
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError } from "@/components/common/Toast";
+import { useLang } from "@/context/LanguageContext";
 import {
   ArrowLeft,
   Wallet,
@@ -50,6 +51,7 @@ const JOB_STYLE: Record<string, string> = {
 
 export default function StaffDetailsPage() {
   const { user } = useAuth();
+  const { t } = useLang();
   const router = useRouter();
   const params = useParams();
   const search = useSearchParams();
@@ -142,7 +144,7 @@ export default function StaffDetailsPage() {
     return { daysInMonth, firstWeekday, byDate, cells };
   }, [month, data]);
 
-  if (user?.role !== "admin") return <p className="text-muted font-bold">Cashier der access nai — admin login lagbe.</p>;
+  if (user?.role !== "admin") return <p className="text-muted font-bold">{t("c.noAccess")}</p>;
 
   if (loading)
     return (
@@ -160,10 +162,10 @@ export default function StaffDetailsPage() {
   if (!staff || !data)
     return (
       <div className="text-center py-16">
-        <p className="font-black text-lg mb-2">Staff pawa jay nai</p>
-        <p className="text-sm text-muted mb-6">Hoito delete hoye gese, nahole link vul.</p>
+        <p className="font-black text-lg mb-2">{t("sd.notFound")}</p>
+        <p className="text-sm text-muted mb-6">{t("sd.notFoundSub")}</p>
         <Link href="/admin/staff">
-          <Button variant="secondary" className="text-xs">Staff list e firun</Button>
+          <Button variant="secondary" className="text-xs">{t("sd.backList")}</Button>
         </Link>
       </div>
     );
@@ -176,12 +178,12 @@ export default function StaffDetailsPage() {
     try {
       setPaying(true);
       await paySalary({ staffId: staff._id, month, amount: Number(payAmt), note: payNote });
-      showSuccess(`${staff.name} ke ৳${payAmt} deya hoise`);
+      showSuccess(t("staff.paidTo", { name: staff.name, amt: payAmt }));
       setPayAmt("");
       setPayNote("");
       fetchAll(month);
     } catch (err) {
-      showError((err as Error).message);
+      showError(t((err as Error).message));
     } finally {
       setPaying(false);
     }
@@ -197,10 +199,10 @@ export default function StaffDetailsPage() {
       });
       setStaff(updated);
       setEditing(false);
-      showSuccess("Staff info update hoise");
+      showSuccess(t("staff.saved"));
       fetchAll(month);
     } catch (err) {
-      showError((err as Error).message);
+      showError(t((err as Error).message));
     }
   };
 
@@ -210,7 +212,7 @@ export default function StaffDetailsPage() {
       <div className="flex flex-wrap items-center gap-3 justify-between mb-5">
         <div className="flex items-center gap-2 text-xs text-muted font-bold">
           <Link href="/admin/staff" className="flex items-center gap-1 hover:text-brand transition">
-            <ArrowLeft className="w-3.5 h-3.5" /> Staff
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("sd.back")}
           </Link>
           <span>/</span>
           <span className="text-text-main">{staff.name}</span>
@@ -234,39 +236,39 @@ export default function StaffDetailsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-black">{staff.name}</h1>
               <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${JOB_STYLE[staff.job] || JOB_STYLE.other}`}>
-                {staff.job}
+                {t("staff.job" + staff.job.charAt(0).toUpperCase() + staff.job.slice(1))}
               </span>
               <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${staff.active ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
-                {staff.active ? "Active" : "Off"}
+                {staff.active ? t("c.active") : t("c.off")}
               </span>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted font-bold">
               <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {staff.phone || "—"}</span>
-              <span className="flex items-center gap-1"><Briefcase className="w-3.5 h-3.5" /> Beton ৳{staff.monthlySalary} / mash</span>
-              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Per day ৳{perDay} (30 din)</span>
-              <span>Join: {staff.createdAt.slice(0, 10)}</span>
+              <span className="flex items-center gap-1"><Briefcase className="w-3.5 h-3.5" /> {t("sd.betonMonth", { amt: staff.monthlySalary })}</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {t("sd.perDay", { amt: perDay })}</span>
+              <span>{t("sd.joined", { date: staff.createdAt.slice(0, 10) })}</span>
             </div>
           </div>
           <Button variant="secondary" className="text-xs shrink-0" icon={<Pencil className="w-3.5 h-3.5" />} onClick={() => setEditing(!editing)}>
-            {editing ? "Bondho" : "Edit"}
+            {editing ? t("sd.editClose") : t("sd.edit")}
           </Button>
         </div>
 
         {editing && (
           <form onSubmit={handleEdit} className="mt-4 pt-4 border-t border-card-border grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <Input label="Phone" name="phone" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+            <Input label={t("staff.phone")} name="phone" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
             <div>
-              <label className="text-sm font-bold text-text-main block mb-1.5">Kaj</label>
+              <label className="text-sm font-bold text-text-main block mb-1.5">{t("staff.job")}</label>
               <select value={editForm.job} onChange={(e) => setEditForm({ ...editForm, job: e.target.value })} className="w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none text-sm">
-                <option value="baburchi">Baburchi</option>
-                <option value="helper">Helper</option>
-                <option value="cashier">Cashier</option>
-                <option value="other">Onno</option>
+                <option value="baburchi">{t("staff.jobBaburchi")}</option>
+                <option value="helper">{t("staff.jobHelper")}</option>
+                <option value="cashier">{t("staff.jobCashier")}</option>
+                <option value="other">{t("staff.jobOther")}</option>
               </select>
             </div>
-            <Input label="Mashik beton (৳)" type="number" name="monthlySalary" value={editForm.monthlySalary} onChange={(e) => setEditForm({ ...editForm, monthlySalary: e.target.value })} required />
+            <Input label={t("staff.salary")} type="number" name="monthlySalary" value={editForm.monthlySalary} onChange={(e) => setEditForm({ ...editForm, monthlySalary: e.target.value })} required />
             <div className="flex items-end">
-              <Button type="submit" variant="primary" className="w-full justify-center text-xs">Save</Button>
+              <Button type="submit" variant="primary" className="w-full justify-center text-xs">{t("c.save")}</Button>
             </div>
           </form>
         )}
@@ -277,34 +279,34 @@ export default function StaffDetailsPage() {
         <div className="bg-card-bg border border-card-border rounded-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 text-muted mb-1">
             <Wallet className="w-4 h-4" />
-            <p className="text-[11px] font-black uppercase tracking-wide">Paoa ({month})</p>
+            <p className="text-[11px] font-black uppercase tracking-wide">{t("sd.kPaoa")} ({month})</p>
           </div>
           <p className="text-2xl font-black">৳{payable}</p>
-          <p className="text-[11px] text-muted font-bold mt-1">{effective} effective din × ৳{perDay}</p>
+          <p className="text-[11px] text-muted font-bold mt-1">{t("sd.effLine", { n: effective, per: perDay })}</p>
         </div>
         <div className="bg-card-bg border border-card-border rounded-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 text-muted mb-1">
             <Banknote className="w-4 h-4" />
-            <p className="text-[11px] font-black uppercase tracking-wide">Deya</p>
+            <p className="text-[11px] font-black uppercase tracking-wide">{t("sd.kDeya")}</p>
           </div>
           <p className="text-2xl font-black text-accent">৳{paid}</p>
-          <p className="text-[11px] text-muted font-bold mt-1">Sob mash miliye ৳{totalPaidAll}</p>
+          <p className="text-[11px] text-muted font-bold mt-1">{t("sd.allMonth", { amt: totalPaidAll })}</p>
         </div>
         <div className={`bg-card-bg border rounded-lg p-4 sm:p-5 ${due > 0 ? "border-red-500/40" : "border-card-border"}`}>
           <div className="flex items-center gap-2 text-muted mb-1">
             {due > 0 ? <AlertCircle className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-accent" />}
-            <p className="text-[11px] font-black uppercase tracking-wide">Baki</p>
+            <p className="text-[11px] font-black uppercase tracking-wide">{t("sd.kBaki")}</p>
           </div>
           <p className={`text-2xl font-black ${due > 0 ? "text-red-500" : "text-accent"}`}>৳{due}</p>
-          <p className="text-[11px] text-muted font-bold mt-1">{due > 0 ? "Deya baki ase" : due < 0 ? "Advance deya ase" : "Hisab clear ✓"}</p>
+          <p className="text-[11px] text-muted font-bold mt-1">{due > 0 ? t("sd.bakiDue") : due < 0 ? t("sd.bakiAdv") : t("sd.clear")}</p>
         </div>
         <div className="bg-card-bg border border-card-border rounded-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 text-muted mb-1">
             <CalendarCheck className="w-4 h-4" />
-            <p className="text-[11px] font-black uppercase tracking-wide">Hajira rate</p>
+            <p className="text-[11px] font-black uppercase tracking-wide">{t("sd.kRate")}</p>
           </div>
           <p className="text-2xl font-black">{attendanceRate}%</p>
-          <p className="text-[11px] text-muted font-bold mt-1">P:{c.present} H:{c.half} A:{c.absent} L:{c.leave}</p>
+          <p className="text-[11px] text-muted font-bold mt-1">{t("sd.countLine", { p: c.present, h: c.half, a: c.absent, l: c.leave })}</p>
         </div>
       </section>
 
@@ -313,8 +315,8 @@ export default function StaffDetailsPage() {
         <div className="lg:col-span-2 space-y-4">
           <section className="bg-card-bg border border-card-border rounded-lg p-5">
             <div className="flex flex-wrap justify-between items-center gap-2 mb-1">
-              <h2 className="font-black text-sm">Hajira Calendar — {month}</h2>
-              <span className="text-[11px] text-muted font-bold">Entry {totalDays}/{calendar?.daysInMonth} din {hDays > 0 && `• ${Math.round(totH * 10) / 10}h duty`}</span>
+              <h2 className="font-black text-sm">{t("sd.cal", { month })}</h2>
+              <span className="text-[11px] text-muted font-bold">{t("sd.entryCount", { a: totalDays, b: calendar?.daysInMonth || 0 })} {hDays > 0 && `• ${t("sd.dutyTot", { h: Math.round(totH * 10) / 10, n: hDays })}`}</span>
             </div>
             <div className="h-2 rounded-full bg-bg-main overflow-hidden flex mb-4">
               <div className="bg-emerald-500 h-full" style={{ width: `${calendar ? (c.present / calendar.daysInMonth) * 100 : 0}%` }} />
@@ -334,7 +336,7 @@ export default function StaffDetailsPage() {
                 return (
                   <div
                     key={cell.date}
-                    title={`${cell.date}: ${a ? `${a.status}${a.inTime ? ` (${a.inTime}→${a.outTime || "…"})` : ""}` : "entry nai"}`}
+                    title={`${cell.date}: ${a ? `${t(`st.${a.status}`)}${a.inTime ? ` (${a.inTime}→${a.outTime || "…"})` : ""}` : t("sd.noEntryTip")}`}
                     className={`rounded-md border p-1.5 min-h-[52px] flex flex-col justify-between transition ${a ? STATUS_STYLE[a.status] : "bg-bg-main border-card-border"}`}
                   >
                     <span className={`text-[11px] font-black ${a ? "" : "text-muted/50"}`}>{cell.day}</span>
@@ -344,27 +346,27 @@ export default function StaffDetailsPage() {
               })}
             </div>
             <div className="flex flex-wrap gap-3 mt-3 text-[11px] font-bold text-muted">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Present</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Half</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Chuti</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Absent</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> {t("st.optPresent")}</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> {t("st.optHalf")}</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> {t("st.optLeave")}</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> {t("st.optAbsent")}</span>
             </div>
           </section>
 
           <section className="bg-card-bg border border-card-border rounded-lg overflow-hidden">
             <div className="flex justify-between items-center px-5 pt-4 pb-2">
-              <h2 className="font-black text-sm">Hajira Log ({mine.length})</h2>
-              <Link href="/admin/attendance" className="text-[11px] font-black text-brand hover:underline">Hajira nin →</Link>
+              <h2 className="font-black text-sm">{t("sd.log", { n: mine.length })}</h2>
+              <Link href="/admin/attendance" className="text-[11px] font-black text-brand hover:underline">{t("sd.hajiraLink")}</Link>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[560px]">
                 <thead className="bg-bg-main text-muted text-left">
                   <tr>
-                    <th className="p-3 text-xs">Tarikh</th>
-                    <th className="p-3 text-xs">Status</th>
-                    <th className="p-3 text-xs">Dhuklo</th>
-                    <th className="p-3 text-xs">Ber holo</th>
-                    <th className="p-3 text-xs text-right">Duty</th>
+                    <th className="p-3 text-xs">{t("sd.thDate")}</th>
+                    <th className="p-3 text-xs">{t("sd.thStatus")}</th>
+                    <th className="p-3 text-xs">{t("sd.thIn")}</th>
+                    <th className="p-3 text-xs">{t("sd.thOut")}</th>
+                    <th className="p-3 text-xs text-right">{t("sd.thDuty")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -374,7 +376,7 @@ export default function StaffDetailsPage() {
                       <tr key={a._id} className="border-t border-card-border">
                         <td className="p-3 font-bold text-xs">{a.date}</td>
                         <td className="p-3">
-                          <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${STATUS_STYLE[a.status]}`}>{a.status}</span>
+                          <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${STATUS_STYLE[a.status]}`}>{t(`st.${a.status}`)}</span>
                         </td>
                         <td className="p-3 font-bold text-xs">{a.inTime || "—"}</td>
                         <td className="p-3 font-bold text-xs">{a.outTime || "—"}</td>
@@ -384,7 +386,7 @@ export default function StaffDetailsPage() {
                   })}
                 </tbody>
               </table>
-              {mine.length === 0 && <p className="text-center text-muted py-8 text-xs">Ei mashe hajira nai — Hajira page theke entry din.</p>}
+              {mine.length === 0 && <p className="text-center text-muted py-8 text-xs">{t("sd.noHajira")}</p>}
             </div>
           </section>
         </div>
@@ -392,22 +394,22 @@ export default function StaffDetailsPage() {
         {/* right: pay + history */}
         <div className="space-y-4">
           <section className="bg-card-bg border border-card-border rounded-lg p-5">
-            <h2 className="font-black text-sm mb-1">Beton / Advance din</h2>
-            <p className="text-[11px] text-muted mb-3">{month} masher hisabe • Baki ৳{due}</p>
+            <h2 className="font-black text-sm mb-1">{t("sd.payTitle")}</h2>
+            <p className="text-[11px] text-muted mb-3">{t("sd.paySub", { month, due })}</p>
             <div className="space-y-3">
-              <Input label="Taka (৳)" type="number" name="amt" value={payAmt} onChange={(e) => setPayAmt(e.target.value)} placeholder={String(Math.max(due, 0))} />
-              <Input label="Note" name="note" value={payNote} onChange={(e) => setPayNote(e.target.value)} placeholder="advance / full beton" />
+              <Input label={t("sd.payAmt")} type="number" name="amt" value={payAmt} onChange={(e) => setPayAmt(e.target.value)} placeholder={String(Math.max(due, 0))} />
+              <Input label={t("sd.payNote")} name="note" value={payNote} onChange={(e) => setPayNote(e.target.value)} placeholder={t("sd.payNotePh")} />
               <Button variant="primary" className="w-full justify-center text-xs" disabled={paying} onClick={handlePay}>
-                {paying ? "Deya hocche..." : "Confirm — taka din"}
+                {paying ? t("sd.paying") : t("sd.payConfirm")}
               </Button>
               <div className="flex gap-2">
                 {[1000, 2000, 5000].map((v) => (
-                  <button key={v} onClick={() => setPayAmt(String(v))} className="flex-1 text-[11px] font-black py-2 rounded-lg border border-card-border bg-bg-main hover:border-brand/40 transition">
+                  <button key={v} onClick={() => setPayAmt(String(v))} className="flex-1 text-[11px] font-black py-2 rounded-md border border-card-border bg-bg-main hover:border-brand/40 transition">
                     ৳{v}
                   </button>
                 ))}
-                <button onClick={() => setPayAmt(String(Math.max(due, 0)))} className="flex-1 text-[11px] font-black py-2 rounded-lg border border-brand/30 bg-brand/5 text-brand transition">
-                  Full baki
+                <button onClick={() => setPayAmt(String(Math.max(due, 0)))} className="flex-1 text-[11px] font-black py-2 rounded-md border border-brand/30 bg-brand/5 text-brand transition">
+                  {t("sd.fullDue")}
                 </button>
               </div>
             </div>
@@ -415,11 +417,11 @@ export default function StaffDetailsPage() {
 
           <section className="bg-card-bg border border-card-border rounded-lg p-5">
             <div className="flex justify-between items-center mb-3">
-              <h2 className="font-black text-sm">Beton History ({history.length})</h2>
-              <span className="text-[11px] font-black text-accent">Mot ৳{totalPaidAll}</span>
+              <h2 className="font-black text-sm">{t("sd.payHist", { n: history.length })}</h2>
+              <span className="text-[11px] font-black text-accent">{t("sd.totalPaid", { amt: totalPaidAll })}</span>
             </div>
             <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
-              {history.length === 0 && <p className="text-[11px] text-muted">Ekhono taka deya hoy nai.</p>}
+              {history.length === 0 && <p className="text-[11px] text-muted">{t("sd.noPay")}</p>}
               {history.map((p) => (
                 <div key={p._id} className="rounded-md bg-bg-main border border-card-border p-3">
                   <div className="flex justify-between items-center">
@@ -433,10 +435,9 @@ export default function StaffDetailsPage() {
           </section>
 
           <section className="bg-bg-main border border-card-border rounded-lg p-4">
-            <p className="text-[11px] font-black uppercase text-muted mb-1">Hisab er niyom</p>
+            <p className="text-[11px] font-black uppercase text-muted mb-1">{t("sd.ruleTitle")}</p>
             <p className="text-[11px] text-muted leading-relaxed">
-              Mash = 30 din • Per day = Beton ÷ 30 • Present = 1 din, Half = 0.5 din, Chuti/Absent = 0 •
-              Paoa = Effective din × Per day • Baki = Paoa − Deya (minus mane advance).
+              {t("sd.ruleBody")}
             </p>
           </section>
         </div>

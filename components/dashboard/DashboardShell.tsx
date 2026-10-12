@@ -16,7 +16,9 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useLang } from "@/context/LanguageContext";
 import { showConfirm } from "@/components/common/Toast";
+import LangToggle from "@/components/common/LangToggle";
 
 export interface DashboardNavItem {
   href: string;
@@ -57,6 +59,7 @@ export default function DashboardShell({
   const router = useRouter();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t, lang } = useLang();
   const [open, setOpen] = useState(false);
   const isDark = theme === "dark";
 
@@ -69,7 +72,7 @@ export default function DashboardShell({
     href === "/admin" ? pathname === href : pathname.startsWith(href);
 
   const handleLogout = () => {
-    showConfirm("Logout from dashboard?", () => {
+    showConfirm(t("shell.logoutConfirm"), () => {
       logout();
       router.push("/login");
     });
@@ -137,19 +140,19 @@ export default function DashboardShell({
           href="/"
           className={`flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-bold transition ${isDark ? "text-white/70 hover:bg-white/[0.06] hover:text-white" : "text-muted hover:bg-bg-main hover:text-text-main"}`}
         >
-          <Store className="h-4 w-4" /> View storefront
+          <Store className="h-4 w-4" /> {t("shell.store")}
         </Link>
         <button
           onClick={handleLogout}
           className={`flex w-full items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-bold transition ${isDark ? "text-white/70 hover:bg-red-500/15 hover:text-red-300" : "text-muted hover:bg-red-50 hover:text-red-600"}`}
         >
-          <LogOut className="h-4 w-4" /> Logout
+          <LogOut className="h-4 w-4" /> {t("shell.logout")}
         </button>
       </div>
     </div>
   );
 
-  const today = new Date().toLocaleDateString("en-US", {
+  const today = new Date().toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -199,7 +202,7 @@ export default function DashboardShell({
             <div className="hidden min-w-0 flex-1 max-w-xs items-center gap-2 rounded-md border border-card-border bg-card-bg px-3 py-2 md:flex">
               <Search className="h-4 w-4 shrink-0 text-muted" />
               <input
-                placeholder="Search orders, foods..."
+                placeholder={t("shell.searchPh")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
               />
               <kbd className="rounded-md border border-card-border bg-bg-main px-1.5 py-0.5 text-[10px] font-bold text-muted">
@@ -207,6 +210,7 @@ export default function DashboardShell({
               </kbd>
             </div>
             <span className="hidden text-xs font-bold text-muted xl:block">{today}</span>
+            <LangToggle compact />
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"

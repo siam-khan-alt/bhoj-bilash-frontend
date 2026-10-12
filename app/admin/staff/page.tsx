@@ -11,6 +11,8 @@ import type { StaffMember, SalaryPayment, Attendance } from "@/types";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError, showConfirm } from "@/components/common/Toast";
+import { useLang } from "@/context/LanguageContext";
+import { jobKey } from "@/lib/i18n/dict";
 import { Plus, Trash2, Wallet, Eye } from "lucide-react";
 import Link from "next/link";
 
@@ -18,6 +20,7 @@ const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 export default function StaffPage() {
   const { user } = useAuth();
+  const { t } = useLang();
   const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [payments, setPayments] = useState<SalaryPayment[]>([]);
@@ -45,7 +48,7 @@ export default function StaffPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
 
-  if (user?.role !== "admin") return <p className="text-muted font-bold">Cashier der access nai — admin login lagbe.</p>;
+  if (user?.role !== "admin") return <p className="text-muted font-bold">{t("c.noAccess")}</p>;
 
   const paidFor = (id: string) => payments.filter((p) => p.staffId === id).reduce((s, p) => s + p.amount, 0);
 
@@ -53,12 +56,12 @@ export default function StaffPage() {
     e.preventDefault();
     try {
       await addStaff({ name: form.name, job: form.job, phone: form.phone, monthlySalary: Number(form.monthlySalary) });
-      showSuccess("Staff add hoise!");
+      showSuccess(t("staff.added"));
       setShowForm(false);
       setForm({ name: "", job: "helper", phone: "", monthlySalary: "" });
       fetchAll();
     } catch (err) {
-      showError((err as Error).message);
+      showError(t((err as Error).message));
     }
   };
 
@@ -66,43 +69,43 @@ export default function StaffPage() {
     if (!paying) return;
     try {
       await paySalary({ staffId: paying._id, month, amount: Number(payAmt), note: payNote });
-      showSuccess(`${paying.name} ke ৳${payAmt} deya hoise`);
+      showSuccess(t("staff.paidTo", { name: paying.name, amt: payAmt }));
       setPaying(null);
       setPayAmt("");
       setPayNote("");
       fetchAll();
     } catch (err) {
-      showError((err as Error).message);
+      showError(t((err as Error).message));
     }
   };
 
   return (
     <div>
       <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
-        <h2 className="text-xl font-black">Staff + Beton</h2>
+        <h2 className="text-xl font-black">{t("staff.title")}</h2>
         <div className="flex gap-2 items-center">
           <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm" />
-          <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(!showForm)}>Add Staff</Button>
+          <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(!showForm)}>{t("staff.addBtn")}</Button>
         </div>
       </div>
 
       {showForm && (
         <form onSubmit={handleAdd} className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Nam" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <Input label={t("staff.name")} name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <div>
-            <label className="text-xs font-black uppercase tracking-wide text-muted">Kaj</label>
+            <label className="text-xs font-black uppercase tracking-wide text-muted">{t("staff.job")}</label>
             <select value={form.job} onChange={(e) => setForm({ ...form, job: e.target.value })} className="mt-2 w-full px-4 py-3 rounded-md bg-bg-main border border-card-border outline-none">
-              <option value="baburchi">Baburchi</option>
-              <option value="helper">Helper</option>
-              <option value="cashier">Cashier</option>
-              <option value="other">Onno</option>
+              <option value="baburchi">{t("staff.jobBaburchi")}</option>
+              <option value="helper">{t("staff.jobHelper")}</option>
+              <option value="cashier">{t("staff.jobCashier")}</option>
+              <option value="other">{t("staff.jobOther")}</option>
             </select>
           </div>
-          <Input label="Phone" name="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <Input label="Mashik beton (৳)" type="number" name="monthlySalary" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} required />
+          <Input label={t("staff.phone")} name="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <Input label={t("staff.salary")} type="number" name="monthlySalary" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} required />
           <div className="sm:col-span-2 flex gap-3">
-            <Button type="submit" variant="primary">Save</Button>
-            <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">{t("c.save")}</Button>
+            <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>{t("c.cancel")}</Button>
           </div>
         </form>
       )}
@@ -118,21 +121,21 @@ export default function StaffPage() {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <p className="font-black">{s.name}</p>
-                  <p className="text-xs text-muted">{s.job} • {s.phone} • Beton ৳{s.monthlySalary}</p>
+                  <p className="text-xs text-muted">{t(jobKey(s.job))} • {s.phone} • {t("staff.beton")} ৳{s.monthlySalary}</p>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => showConfirm(`${s.name} ke archived korbo?`, async () => { await updateStaff(s._id, { active: false }); fetchAll(); })} className="text-xs text-muted hover:text-red-500 px-2 py-1">Off</button>
-                  <button onClick={() => showConfirm(`${s.name} delete?`, async () => { await deleteStaff(s._id); showSuccess("Delete hoise"); fetchAll(); })} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => showConfirm(t("staff.archConfirm", { name: s.name }), async () => { await updateStaff(s._id, { active: false }); fetchAll(); })} className="text-xs text-muted hover:text-red-500 px-2 py-1">{t("c.off")}</button>
+                  <button onClick={() => showConfirm(t("staff.deleteConfirm", { name: s.name }), async () => { await deleteStaff(s._id); showSuccess(t("staff.deleted")); fetchAll(); })} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
-              <p className="text-xs text-muted mb-3">Hajira: P:{c.present} H:{c.half} A:{c.absent} L:{c.leave} → Paoa: <b className="text-text-main">৳{payable}</b> • Deya: <b className="text-accent">৳{paid}</b> • Baki: <b className={due > 0 ? "text-red-500" : "text-accent"}>৳{due}</b>{due < 0 ? <span className="text-accent"> (advance)</span> : ""}</p>
+              <p className="text-xs text-muted mb-3">{t("staff.hajira")}: P:{c.present} H:{c.half} A:{c.absent} L:{c.leave} → {t("staff.paoa")}: <b className="text-text-main">৳{payable}</b> • {t("staff.deya")}: <b className="text-accent">৳{paid}</b> • {t("staff.baki")}: <b className={due > 0 ? "text-red-500" : "text-accent"}>৳{due}</b>{due < 0 ? <span className="text-accent"> {t("staff.advance")}</span> : ""}</p>
               <div className="flex gap-2">
                 <Button variant="secondary" className="flex-1 justify-center text-xs" icon={<Wallet className="w-3.5 h-3.5" />} onClick={() => { setPaying(s); setPayAmt(String(Math.max(due, 0))); setPayNote(""); }}>
-                  Beton / Advance din
+                  {t("staff.payBtn")}
                 </Button>
                 <Link href={`/admin/staff/${s._id}?month=${month}`}>
                   <Button variant="secondary" className="justify-center text-xs" icon={<Eye className="w-3.5 h-3.5" />}>
-                    Details
+                    {t("staff.details")}
                   </Button>
                 </Link>
               </div>
@@ -147,18 +150,18 @@ export default function StaffPage() {
           );
         })}
       </div>
-      {staff.filter((s) => s.active).length === 0 && <p className="text-muted text-center mt-8">Kono staff nai — Add Staff diye shuru korun.</p>}
+      {staff.filter((s) => s.active).length === 0 && <p className="text-muted text-center mt-8">{t("staff.empty")}</p>}
 
       {paying && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setPaying(null)}>
           <div className="w-full max-w-sm bg-card-bg border border-card-border rounded-lg p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-black mb-1">{paying.name} ke taka din</h3>
-            <p className="text-xs text-muted mb-4">{month} masher hisabe</p>
-            <Input label="Taka (৳)" type="number" name="amt" value={payAmt} onChange={(e) => setPayAmt(e.target.value)} required />
-            <Input label="Note (jemon: advance / full beton)" name="note" value={payNote} onChange={(e) => setPayNote(e.target.value)} />
+            <h3 className="font-black mb-1">{t("staff.payTitle", { name: paying.name })}</h3>
+            <p className="text-xs text-muted mb-4">{t("staff.payMonth", { month })}</p>
+            <Input label={t("staff.payAmt")} type="number" name="amt" value={payAmt} onChange={(e) => setPayAmt(e.target.value)} required />
+            <Input label={t("staff.payNote")} name="note" value={payNote} onChange={(e) => setPayNote(e.target.value)} />
             <div className="flex gap-2 mt-4">
-              <Button variant="primary" className="flex-1 justify-center" onClick={handlePay}>Confirm</Button>
-              <Button variant="secondary" onClick={() => setPaying(null)}>Cancel</Button>
+              <Button variant="primary" className="flex-1 justify-center" onClick={handlePay}>{t("c.confirm")}</Button>
+              <Button variant="secondary" onClick={() => setPaying(null)}>{t("c.cancel")}</Button>
             </div>
           </div>
         </div>

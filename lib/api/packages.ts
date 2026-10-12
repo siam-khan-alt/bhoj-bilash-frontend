@@ -35,9 +35,9 @@ export async function getPackages(activeOnly = false): Promise<Package[]> {
 
 export async function addPackage(data: { name: string; items: PackageItem[]; price: number; offerPrice?: number; offerNote?: string }): Promise<Package> {
   await delay();
-  if (!data.name.trim()) throw new Error("Package nam likhun");
-  if (!data.items.length) throw new Error("Ekta item add korun");
-  if (!data.price || Number(data.price) <= 0) throw new Error("Sothik dam likhun");
+  if (!data.name.trim()) throw new Error("err.pkgName");
+  if (!data.items.length) throw new Error("err.pkgItem");
+  if (!data.price || Number(data.price) <= 0) throw new Error("err.priceInvalid");
   const list = getStored();
   const item: Package = {
     _id: `pkg_${Date.now()}`,
@@ -57,7 +57,7 @@ export async function updatePackage(id: string, patch: Partial<Pick<Package, "na
   await delay();
   const list = getStored();
   const idx = list.findIndex((p) => p._id === id);
-  if (idx === -1) throw new Error("Package not found");
+  if (idx === -1) throw new Error("err.pkgNotFound");
   list[idx] = { ...list[idx], ...patch };
   setStored(list);
   return list[idx];

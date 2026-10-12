@@ -4,17 +4,19 @@ import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { RestaurantProvider } from "@/context/RestaurantContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import AppChrome from "@/components/layout/AppChrome";
 
 export const metadata: Metadata = {
-  title: "Bhoj Bilash — Dokan POS",
-  description: "Bhoj Bilash er jonno simple POS + Hisab",
+  title: "Bhoj Bilash — Bill & Hisab",
+  description: "Bhoj Bilash er jonno simple bill + hisab",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-bg-main text-text-main font-sans antialiased transition-colors duration-300">
+        <LanguageProvider>
         <ThemeProvider>
           <RestaurantProvider>
             <AuthProvider>
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </AuthProvider>
           </RestaurantProvider>
         </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

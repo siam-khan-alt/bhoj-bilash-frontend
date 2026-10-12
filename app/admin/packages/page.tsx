@@ -9,10 +9,12 @@ import type { Package, Food, PackageItem } from "@/types";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { showSuccess, showError, showConfirm } from "@/components/common/Toast";
+import { useLang } from "@/context/LanguageContext";
 import { Plus, Trash2, Pencil, Package as PkgIcon } from "lucide-react";
 
 export default function PackagesPage() {
   const { user } = useAuth();
+  const { t } = useLang();
   const router = useRouter();
   const [list, setList] = useState<Package[]>([]);
   const [foods, setFoods] = useState<Food[]>([]);
@@ -39,7 +41,7 @@ export default function PackagesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (user?.role !== "admin") return <p className="text-muted font-bold">Cashier der access nai — admin login lagbe.</p>;
+  if (user?.role !== "admin") return <p className="text-muted font-bold">{t("c.noAccess")}</p>;
 
   const foodName = (id: string) => foods.find((f) => f._id === id)?.name || id;
   const foodPrice = (id: string) => foods.find((f) => f._id === id)?.price || 0;
@@ -93,15 +95,15 @@ export default function PackagesPage() {
       };
       if (editing) {
         await updatePackage(editing._id, data);
-        showSuccess("Package update hoise!");
+        showSuccess(t("pkg.updated"));
       } else {
         await addPackage(data);
-        showSuccess("Package add hoise!");
+        showSuccess(t("pkg.added"));
       }
       reset();
       fetchAll();
     } catch (err) {
-      showError((err as Error).message);
+      showError(t((err as Error).message));
     }
   };
 
@@ -109,46 +111,46 @@ export default function PackagesPage() {
     <div>
       <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
         <div>
-          <h2 className="text-xl font-black">Package + Offer</h2>
-          <p className="text-xs text-muted">Bundle dam e bikri — POS e 1 tap, marketing e offer</p>
+          <h2 className="text-xl font-black">{t("pkg.title")}</h2>
+          <p className="text-xs text-muted">{t("pkg.sub")}</p>
         </div>
-        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => { reset(); setShowForm(true); }}>Notun Package</Button>
+        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => { reset(); setShowForm(true); }}>{t("pkg.new")}</Button>
       </div>
 
       {showForm && (
         <form onSubmit={handleSave} className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Package nam" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
+            <Input label={t("pkg.name")} name="name" value={name} onChange={(e) => setName(e.target.value)} required />
             <div>
-              <Input label="Package dam (৳)" type="number" name="price" value={price} onChange={(e) => setPrice(e.target.value)} required />
+              <Input label={t("pkg.price")} type="number" name="price" value={price} onChange={(e) => setPrice(e.target.value)} required />
               {items.length > 0 && (
                 <p className="text-[11px] font-bold mt-1.5">
-                  <span className="text-muted">Menu dam: ৳{menuTotal}</span>
+                  <span className="text-muted">{t("pkg.menuPrice", { amt: menuTotal })}</span>
                   {" → "}
                   {Number(price) > 0 ? (
                     Number(price) < menuTotal ? (
-                      <span className="text-accent">৳{menuTotal - Number(price)} char e package ✓</span>
+                      <span className="text-accent">{t("pkg.saveHint", { amt: menuTotal - Number(price) })}</span>
                     ) : Number(price) === menuTotal ? (
-                      <span className="text-muted">menu dam e soman — komiye package banan</span>
+                      <span className="text-muted">{t("pkg.sameHint")}</span>
                     ) : (
-                      <span className="text-red-500">menu dam er beshi hoye gese!</span>
+                      <span className="text-red-500">{t("pkg.overHint")}</span>
                     )
                   ) : (
-                    <span className="text-amber-500">item onujayi kom dam bosan</span>
+                    <span className="text-amber-500">{t("pkg.emptyPriceHint")}</span>
                   )}
                 </p>
               )}
             </div>
-            <Input label="Offer dam (৳) — thakle" type="number" name="offerPrice" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
-            <Input label="Offer note — jemon Eid Offer" name="offerNote" value={offerNote} onChange={(e) => setOfferNote(e.target.value)} />
+            <Input label={t("pkg.offerPrice")} type="number" name="offerPrice" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
+            <Input label={t("pkg.offerNote")} name="offerNote" value={offerNote} onChange={(e) => setOfferNote(e.target.value)} />
           </div>
 
           <div>
             <label className="text-xs font-black uppercase tracking-wide text-muted">
-              Foods list theke tap kore item nin ({items.length} ta select • menu dam: ৳{menuTotal})
+              {t("pkg.pick", { n: items.length, total: menuTotal })}
             </label>
             {foods.length === 0 ? (
-              <p className="text-xs text-amber-500 font-bold mt-2">Age Manage Foods e khabar add korun — tarpor ekhan theke select korte parben.</p>
+              <p className="text-xs text-amber-500 font-bold mt-2">{t("pkg.needFoods")}</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 max-h-56 overflow-y-auto">
                 {foods.map((f) => {
@@ -174,8 +176,8 @@ export default function PackagesPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button type="submit" variant="primary">{editing ? "Update" : "Save"} Package</Button>
-            <Button type="button" variant="secondary" onClick={reset}>Cancel</Button>
+            <Button type="submit" variant="primary">{editing ? t("pkg.updatePkg") : t("pkg.savePkg")}</Button>
+            <Button type="button" variant="secondary" onClick={reset}>{t("c.cancel")}</Button>
           </div>
         </form>
       )}
@@ -190,7 +192,7 @@ export default function PackagesPage() {
               </div>
               <div className="flex gap-1">
                 <button onClick={() => openEdit(p)} className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded-lg"><Pencil className="w-4 h-4" /></button>
-                <button onClick={() => showConfirm(`"${p.name}" delete?`, async () => { await deletePackage(p._id); showSuccess("Delete hoise"); fetchAll(); })} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                <button onClick={() => showConfirm(t("pkg.deleteConfirm", { name: p.name }), async () => { await deletePackage(p._id); showSuccess(t("pkg.deleted")); fetchAll(); })} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
               </div>
             </div>
             <p className="text-xs text-muted mb-2">{p.items.map((it) => `${foodName(it.foodId)} x${it.qty}`).join(" + ")}</p>
@@ -209,12 +211,12 @@ export default function PackagesPage() {
               onClick={async () => { await updatePackage(p._id, { active: !p.active }); fetchAll(); }}
               className={`w-full py-2 rounded-md text-xs font-black border ${p.active ? "bg-accent/10 text-accent border-accent/30" : "bg-bg-main border-card-border text-muted"}`}
             >
-              {p.active ? "Chalu ache — tap kore bondho" : "Bondho — tap kore chalu"}
+              {p.active ? t("pkg.active") : t("pkg.inactive")}
             </button>
           </div>
         ))}
       </div>
-      {list.length === 0 && <p className="text-muted text-center mt-8">Kono package nai — Notun Package diye shuru korun.</p>}
+      {list.length === 0 && <p className="text-muted text-center mt-8">{t("pkg.empty")}</p>}
     </div>
   );
 }

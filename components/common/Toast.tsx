@@ -2,6 +2,7 @@
 
 import toast from "react-hot-toast";
 import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { getStoredLang, translate } from "@/lib/i18n/dict";
 
 const baseStyle: React.CSSProperties = {
   background: "var(--color-card-bg)",
@@ -30,6 +31,9 @@ export const showError = (message: string) => {
 };
 
 export const showConfirm = (message: string, onConfirm: () => void) => {
+  const lang = getStoredLang();
+  const cancelTxt = translate(lang, "c.cancel");
+  const confirmTxt = translate(lang, "c.confirm");
   toast(
     (t) => (
       <div className="flex flex-col gap-2">
@@ -40,18 +44,18 @@ export const showConfirm = (message: string, onConfirm: () => void) => {
         <div className="flex gap-2 justify-end">
           <button
             onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1.5 text-xs font-bold rounded-lg border border-card-border text-text-main"
+            className="px-3 py-1.5 text-xs font-bold rounded-md border border-card-border text-text-main"
           >
-            Cancel
+            {cancelTxt}
           </button>
           <button
             onClick={() => {
               toast.dismiss(t.id);
               onConfirm();
             }}
-            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand text-white"
+            className="px-3 py-1.5 text-xs font-bold rounded-md bg-brand text-white"
           >
-            Confirm
+            {confirmTxt}
           </button>
         </div>
       </div>

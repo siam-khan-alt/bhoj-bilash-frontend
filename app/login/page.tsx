@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LanguageContext";
 import { login as apiLogin } from "@/lib/api/auth";
 
 import Input from "@/components/common/Input";
@@ -13,6 +14,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { t } = useLang();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +27,7 @@ export default function Login() {
       cashier: { email: "cashier@test.com", password: "cashier123", label: "Cashier" },
     }[type];
     setFormData({ email: creds.email, password: creds.password });
-    showSuccess(`Demo ${creds.label} filled! Click Login.`);
+    showSuccess(t("login.demoFilled", { label: creds.label }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,11 +38,11 @@ export default function Login() {
     try {
       const res = await apiLogin(formData);
       login(res.user, res.token);
-      showSuccess("Logged in!");
+      showSuccess(t("login.done"));
       if (res.user.role === "cashier") router.push("/admin/pos");
       else router.push("/admin");
     } catch (err) {
-      const message = (err as Error).message || "Login failed";
+      const message = t((err as Error).message || "login.fail");
       setError(message);
       showError(message);
     } finally {
@@ -51,8 +53,8 @@ export default function Login() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
       <div className="w-full max-w-md bg-card-bg border border-card-border rounded-lg p-8 shadow-xl">
-        <h2 className="text-2xl font-black text-text-main mb-1 text-center">Dokan Login</h2>
-        <p className="text-center text-sm text-muted mb-6">Admin ba Cashier — 2 ta role e shesh</p>
+        <h2 className="text-2xl font-black text-text-main mb-1 text-center">{t("login.title")}</h2>
+        <p className="text-center text-sm text-muted mb-6">{t("login.sub")}</p>
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-500 text-sm p-3 rounded-md mb-4">
@@ -61,19 +63,19 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
-          <Input label="Password" type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••" required />
+          <Input label={t("login.email")} type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
+          <Input label={t("login.pass")} type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••" required />
           <Button type="submit" variant="primary" className="w-full justify-center" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? t("login.busy") : t("login.btn")}
           </Button>
         </form>
 
         <div className="grid grid-cols-2 gap-3 mt-4">
           <Button type="button" variant="secondary" className="justify-center text-xs" onClick={() => quickLogin("admin")}>
-            Demo Admin
+            {t("login.demoAdmin")}
           </Button>
           <Button type="button" variant="secondary" className="justify-center text-xs" onClick={() => quickLogin("cashier")}>
-            Demo Cashier
+            {t("login.demoCashier")}
           </Button>
         </div>
       </div>

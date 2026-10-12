@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { Eye } from "lucide-react";
 
 import CustomerDetailsModal from "@/components/admin/CustomerDetailsModal";
+import { useLang } from "@/context/LanguageContext";
 import { showError } from "@/components/common/Toast";
 
 const filterOptions = ["all", "placed", "preparing", "delivered", "cancelled", "dine_in", "parcel"] as const;
 
-const typeLabel = (t?: string) => (t === "both" ? "Ekhane+Parcel" : t === "parcel" ? "Parcel" : "Ekhane");
+
 
 const statusStyle = (s?: string) =>
   s === "delivered"
@@ -26,6 +27,8 @@ const matchType = (t: string | undefined, f: "dine_in" | "parcel") => {
 };
 
 export default function ManageOrders() {
+  const { t } = useLang();
+  const typeLabel = (v?: string) => (v === "both" ? t("ord.typeBoth") : v === "parcel" ? t("ord.typeParcel") : t("ord.typeDine"));
   const [orders, setOrders] = useState<import('@/types').Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -40,13 +43,13 @@ export default function ManageOrders() {
       const data = await getAllOrders();
       setOrders([...data].reverse());
     } catch (err) {
-      showError("Failed to load orders");
+      showError(t("ord.loadFail"));
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <p className="text-muted font-bold">Loading orders...</p>;
+  if (loading) return <p className="text-muted font-bold">{t("ord.loading")}</p>;
 
   const filtered = orders.filter((o) => {
     if (filter === "all") return true;
@@ -60,7 +63,7 @@ export default function ManageOrders() {
 
   return (
     <div>
-      <h2 className="text-xl font-black text-text-main mb-4">Manage Orders</h2>
+      <h2 className="text-xl font-black text-text-main mb-4">{t("ord.title")}</h2>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {filterOptions.map((f) => (
@@ -69,7 +72,7 @@ export default function ManageOrders() {
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-full text-xs font-black border ${filter === f ? "bg-brand text-white border-brand" : "bg-card-bg border-card-border text-muted"}`}
           >
-            {f === "all" ? `Sob (${count(f)})` : f === "dine_in" ? `Ekhane khabe (${count(f)})` : f === "parcel" ? `Parcel (${count(f)})` : `${f} (${count(f)})`}
+            {f === "all" ? `${t("ord.all")} (${count(f)})` : f === "dine_in" ? `${t("ord.dineIn")} (${count(f)})` : f === "parcel" ? `${t("ord.parcel")} (${count(f)})` : `${f} (${count(f)})`}
           </button>
         ))}
       </div>
@@ -78,12 +81,12 @@ export default function ManageOrders() {
         <table className="w-full text-sm min-w-[760px]">
           <thead className="bg-bg-main text-muted text-left">
             <tr>
-              <th className="p-3">Order ID</th>
-              <th className="p-3">Customer</th>
-              <th className="p-3">Type</th>
-              <th className="p-3">Total</th>
-              <th className="p-3">Payment</th>
-              <th className="p-3">Status</th>
+              <th className="p-3">{t("ord.thId")}</th>
+              <th className="p-3">{t("ord.thCus")}</th>
+              <th className="p-3">{t("ord.thType")}</th>
+              <th className="p-3">{t("ord.thTotal")}</th>
+              <th className="p-3">{t("ord.thPay")}</th>
+              <th className="p-3">{t("ord.thStatus")}</th>
             </tr>
           </thead>
           <tbody>
@@ -115,7 +118,7 @@ export default function ManageOrders() {
                 <td className="p-3">
                   <p className="font-bold text-brand">৳{order.totalAmount}</p>
                   {(order.discount || 0) > 0 && (
-                    <p className="text-[11px] font-bold text-amber-500">৳{order.discount} char</p>
+                    <p className="text-[11px] font-bold text-amber-500">{t("ord.char", { amt: order.discount })}</p>
                   )}
                 </td>
 
@@ -129,20 +132,20 @@ export default function ManageOrders() {
                         : "bg-amber-500/10 text-amber-500"
                     }`}
                   >
-                    {order.paymentStatus.toUpperCase()}
+                    {t(`ord.pay.${order.paymentStatus}`)}
                   </span>
                 </td>
 
                 <td className="p-3">
                   <span className={`text-xs font-bold px-2 py-1 rounded-md ${statusStyle(order.orderStatus)}`}>
-                    {order.orderStatus.toUpperCase()}
+                    {t(`ord.st.${order.orderStatus}`)}
                   </span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && <p className="text-center text-muted py-8 text-sm">Ei filter e kono order nai.</p>}
+        {filtered.length === 0 && <p className="text-center text-muted py-8 text-sm">{t("ord.empty")}</p>}
       </div>
 
       <CustomerDetailsModal

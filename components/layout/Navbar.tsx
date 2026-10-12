@@ -6,14 +6,17 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { useLang } from "@/context/LanguageContext";
 import { Sun, Moon, LogOut, Menu, X } from "lucide-react";
 import Button from "@/components/common/Button";
+import LangToggle from "@/components/common/LangToggle";
 import { showConfirm } from "@/components/common/Toast";
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { config } = useRestaurant();
+  const { t } = useLang();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -43,13 +46,14 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center space-x-8">
-          <NavItem href="/" label="Home" />
-          <NavItem href="/menu" label="Menu" />
-          {isStaff && <NavItem href="/admin" label={user?.role === "cashier" ? "Cashier Panel" : "Admin Panel"} />}
+          <NavItem href="/" label={t("nav.home")} />
+          <NavItem href="/menu" label={t("nav.menu")} />
+          {isStaff && <NavItem href="/admin" label={user?.role === "cashier" ? t("nav.cashier") : t("nav.admin")} />}
         </div>
 
         <div className="flex items-center space-x-3">
           <span className="hidden lg:block text-xs font-bold text-muted">{config.name}</span>
+          <LangToggle compact />
           <Button
             variant="icon"
             onClick={toggleTheme}
@@ -59,14 +63,14 @@ export default function Navbar() {
           {user ? (
             <Button
               variant="icon"
-              onClick={() => showConfirm("Are you sure you want to logout?", logout)}
+              onClick={() => showConfirm(t("nav.logoutConfirm"), logout)}
               icon={<LogOut className="w-5 h-5" />}
               className="hidden sm:flex"
               aria-label="Logout"
             />
           ) : (
             <Link href="/login" className="hidden sm:block">
-              <Button variant="primary" className="px-5 py-2.5">Login</Button>
+              <Button variant="primary" className="px-5 py-2.5">{t("nav.login")}</Button>
             </Link>
           )}
           <button className="md:hidden p-2 text-text-main" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Menu">
@@ -77,21 +81,21 @@ export default function Navbar() {
 
       {mobileMenuOpen && (
         <div className="md:hidden flex flex-col space-y-4 px-6 pb-4 border-t border-card-border pt-4">
-          <NavItem href="/" label="Home" />
-          <NavItem href="/menu" label="Menu" />
-          {isStaff && <NavItem href="/admin" label="Admin Panel" />}
+          <NavItem href="/" label={t("nav.home")} />
+          <NavItem href="/menu" label={t("nav.menu")} />
+          {isStaff && <NavItem href="/admin" label={t("nav.admin")} />}
           {user ? (
             <Button
               variant="secondary"
-              onClick={() => showConfirm("Are you sure you want to logout?", () => { logout(); setMobileMenuOpen(false); })}
+              onClick={() => showConfirm(t("nav.logoutConfirm"), () => { logout(); setMobileMenuOpen(false); })}
               icon={<LogOut className="w-4 h-4" />}
               className="w-full justify-start px-4 py-2.5"
             >
-              Logout
+              {t("nav.logout")}
             </Button>
           ) : (
             <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="primary" className="w-full justify-center px-4 py-2.5">Login</Button>
+              <Button variant="primary" className="w-full justify-center px-4 py-2.5">{t("nav.login")}</Button>
             </Link>
           )}
         </div>

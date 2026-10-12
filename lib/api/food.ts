@@ -48,7 +48,7 @@ export async function updateFood(id: string, data: { name?: string; category?: s
   await delay();
   const foods = getStoredFoods();
   const idx = foods.findIndex((f) => f._id === id);
-  if (idx === -1) throw new Error("Food not found");
+  if (idx === -1) throw new Error("err.foodNotFound");
   const updated: Food = {
     ...foods[idx],
     name: data.name ?? foods[idx].name,
@@ -66,7 +66,7 @@ export async function deleteFood(id: string): Promise<void> {
   await delay();
   const foods = getStoredFoods();
   const filtered = foods.filter((f) => f._id !== id);
-  if (filtered.length === foods.length) throw new Error("Food not found");
+  if (filtered.length === foods.length) throw new Error("err.foodNotFound");
   setStoredFoods(filtered);
 }
 

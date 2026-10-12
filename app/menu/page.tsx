@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { useLang } from "@/context/LanguageContext";
 import { getFoods } from "@/lib/api/food";
 import { getPackages, effectivePrice } from "@/lib/api/packages";
 import type { Food, Package } from "@/types";
@@ -10,6 +11,7 @@ import { BadgePercent, Package as PkgIcon, MapPin, Phone } from "lucide-react";
 /** Public menu — QR scan / customer: ajke ki ase + offer. No login. */
 export default function PublicMenuPage() {
   const { config } = useRestaurant();
+  const { t } = useLang();
   const [foods, setFoods] = useState<Food[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [cat, setCat] = useState("all");
@@ -27,8 +29,8 @@ export default function PublicMenuPage() {
     <div className="container mx-auto px-6 lg:px-16 py-10">
       <div className="text-center mb-8">
         <p className="text-xs font-black tracking-widest uppercase text-brand mb-2">{config.name}</p>
-        <h1 className="text-3xl sm:text-4xl font-black">Ajker <span className="text-brand">Menu</span></h1>
-        <p className="text-muted text-sm mt-2">Ja ase tai — sesh item ekhane dekhabe na</p>
+        <h1 className="text-3xl sm:text-4xl font-black">{t("menu.titleA")} <span className="text-brand">{t("menu.titleB")}</span></h1>
+        <p className="text-muted text-sm mt-2">{t("menu.sub")}</p>
         {(config.address || config.phone) && (
           <p className="text-xs text-muted mt-2 flex items-center justify-center gap-3">
             {config.address && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{config.address}</span>}
@@ -40,7 +42,7 @@ export default function PublicMenuPage() {
       {packages.length > 0 && (
         <div className="mb-10">
           <p className="inline-flex items-center gap-2 bg-red-500/10 text-red-500 text-xs font-black tracking-widest uppercase px-3 py-1.5 rounded-full border border-red-500/20 mb-4">
-            <BadgePercent className="w-4 h-4" /> Package & Offer
+            <BadgePercent className="w-4 h-4" /> {t("menu.pkgTag")}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {packages.map((p) => {
@@ -69,13 +71,13 @@ export default function PublicMenuPage() {
       <div className="flex flex-wrap justify-center gap-2 mb-6">
         {cats.map((c) => (
           <button key={c} onClick={() => setCat(c)} className={`px-4 py-1.5 rounded-full text-xs font-black border ${cat === c ? "bg-brand text-white border-brand" : "bg-card-bg border-card-border text-muted"}`}>
-            {c === "all" ? "Sob" : c}
+            {c === "all" ? t("menu.all") : c}
           </button>
         ))}
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-center text-muted">Ajke ei khate kichu nai.</p>
+        <p className="text-center text-muted">{t("menu.empty")}</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {shown.map((f) => (
@@ -90,7 +92,7 @@ export default function PublicMenuPage() {
           ))}
         </div>
       )}
-      <p className="text-center text-xs text-muted mt-8">Dam poriborton hote pare — dokane ese confirm korun.</p>
+      <p className="text-center text-xs text-muted mt-8">{t("menu.note")}</p>
     </div>
   );
 }

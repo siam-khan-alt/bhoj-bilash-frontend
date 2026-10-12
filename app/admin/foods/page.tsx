@@ -7,8 +7,10 @@ import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import CategorySelector from "@/components/admin/CategorySelector";
 import { showSuccess, showError, showConfirm } from "@/components/common/Toast";
+import { useLang } from "@/context/LanguageContext";
 
 export default function ManageFoods() {
+  const { t } = useLang();
   const [foods, setFoods] = useState<import('@/types').Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -24,7 +26,7 @@ export default function ManageFoods() {
       const data = await getFoods();
       setFoods(data);
     } catch (err) {
-      showError("Failed to load foods");
+      showError(t("foods.loadFail"));
     } finally {
       setLoading(false);
     }
@@ -56,45 +58,45 @@ export default function ManageFoods() {
     e.preventDefault();
 
     if (!formData.category) {
-      showError("Please select or add a category");
+      showError(t("foods.needCat"));
       return;
     }
 
     try {
       if (editingFood) {
         await updateFood(editingFood._id, formData);
-        showSuccess("Food item updated!");
+        showSuccess(t("foods.updated"));
       } else {
         await addFood(formData);
-        showSuccess("Food item added!");
+        showSuccess(t("foods.added"));
       }
       setShowForm(false);
       fetchFoods();
     } catch (err) {
-      showError((err as Error).message || "Operation failed");
+      showError(t((err as Error).message) || t("foods.opFail"));
     }
   };
 
   const handleDelete = (food: import('@/types').Food) => {
-    showConfirm(`Delete ${food.name}?`, async () => {
+    showConfirm(t("foods.deleteConfirm", { name: food.name }), async () => {
       try {
         await deleteFood(food._id);
-        showSuccess("Food item deleted");
+        showSuccess(t("foods.deleted"));
         fetchFoods();
       } catch (err) {
-        showError("Failed to delete");
+        showError(t("foods.deleteFail"));
       }
     });
   };
 
-  if (loading) return <p className="text-muted font-bold">Loading...</p>;
+  if (loading) return <p className="text-muted font-bold">{t("c.loading")}</p>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-black text-text-main">Manage Foods</h2>
+        <h2 className="text-xl font-black text-text-main">{t("foods.title")}</h2>
         <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={openAddForm}>
-          Add Food
+          {t("foods.addBtn")}
         </Button>
       </div>
 
@@ -103,7 +105,7 @@ export default function ManageFoods() {
           onSubmit={handleSubmit}
           className="bg-card-bg border border-card-border rounded-lg p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
-          <Input label="Name" name="name" value={formData.name} onChange={handleChange} required />
+          <Input label={t("foods.name")} name="name" value={formData.name} onChange={handleChange} required />
 
           <CategorySelector
             categories={existingCategories}
@@ -111,15 +113,15 @@ export default function ManageFoods() {
             onChange={handleCategoryChange}
           />
 
-          <Input label="Price" type="number" name="price" value={formData.price} onChange={handleChange} required />
-          <Input label="Image URL" name="image" value={formData.image} onChange={handleChange} />
+          <Input label={t("foods.price")} type="number" name="price" value={formData.price} onChange={handleChange} required />
+          <Input label={t("foods.img")} name="image" value={formData.image} onChange={handleChange} />
 
           <div className="sm:col-span-2 flex gap-3">
             <Button type="submit" variant="primary">
-              {editingFood ? "Update" : "Add"} Food
+              {editingFood ? t("foods.updateFood") : t("foods.addFood")}
             </Button>
             <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>
-              Cancel
+              {t("c.cancel")}
             </Button>
           </div>
         </form>
@@ -129,11 +131,11 @@ export default function ManageFoods() {
         <table className="w-full text-sm">
           <thead className="bg-bg-main text-muted text-left">
             <tr>
-              <th className="p-3">Image</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Price</th>
-              <th className="p-3">Actions</th>
+              <th className="p-3">{t("foods.thImg")}</th>
+              <th className="p-3">{t("foods.thName")}</th>
+              <th className="p-3">{t("foods.thCat")}</th>
+              <th className="p-3">{t("foods.thPrice")}</th>
+              <th className="p-3">{t("foods.thAct")}</th>
             </tr>
           </thead>
           <tbody>
@@ -156,15 +158,15 @@ export default function ManageFoods() {
                       onClick={async () => {
                         try {
                           await updateFood(food._id, { available: food.available === false });
-                          showSuccess(food.available === false ? `${food.name} ajke ase!` : `${food.name} sesh!`);
+                          showSuccess(food.available === false ? t("foods.nowAvail", { name: food.name }) : t("foods.nowOut", { name: food.name }));
                           fetchFoods();
                         } catch (err) {
-                          showError("Failed to update");
+                          showError(t("foods.updateFail"));
                         }
                       }}
                       className={`text-[11px] font-black px-2.5 py-1.5 rounded-full border ${food.available === false ? "bg-red-500/10 text-red-500 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"}`}
                     >
-                      {food.available === false ? "Sesh" : "Ase"}
+                      {food.available === false ? t("foods.out") : t("foods.avail")}
                     </button>
                     <button onClick={() => openEditForm(food)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg">
                       <Pencil className="w-4 h-4" />

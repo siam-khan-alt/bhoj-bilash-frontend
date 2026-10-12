@@ -12,13 +12,15 @@ import {
 } from "@/lib/api/attendance";
 import type { StaffMember, Attendance, AttendanceStatus } from "@/types";
 import { showError, showSuccess } from "@/components/common/Toast";
+import { useLang } from "@/context/LanguageContext";
+import { jobKey } from "@/lib/i18n/dict";
 import { Check, X, Minus, Palmtree, Clock } from "lucide-react";
 
-const OPTS: { v: AttendanceStatus; label: string; icon: React.ReactNode; cls: string }[] = [
-  { v: "present", label: "Uposthit", icon: <Check className="w-3.5 h-3.5" />, cls: "bg-accent text-white border-accent" },
-  { v: "half", label: "Half", icon: <Minus className="w-3.5 h-3.5" />, cls: "bg-amber-500 text-white border-amber-500" },
-  { v: "leave", label: "Chuti", icon: <Palmtree className="w-3.5 h-3.5" />, cls: "bg-blue-500 text-white border-blue-500" },
-  { v: "absent", label: "Absent", icon: <X className="w-3.5 h-3.5" />, cls: "bg-red-500 text-white border-red-500" },
+const OPTS: { v: AttendanceStatus; labelKey: string; icon: React.ReactNode; cls: string }[] = [
+  { v: "present", labelKey: "st.optPresent", icon: <Check className="w-3.5 h-3.5" />, cls: "bg-accent text-white border-accent" },
+  { v: "half", labelKey: "st.optHalf", icon: <Minus className="w-3.5 h-3.5" />, cls: "bg-amber-500 text-white border-amber-500" },
+  { v: "leave", labelKey: "st.optLeave", icon: <Palmtree className="w-3.5 h-3.5" />, cls: "bg-blue-500 text-white border-blue-500" },
+  { v: "absent", labelKey: "st.optAbsent", icon: <X className="w-3.5 h-3.5" />, cls: "bg-red-500 text-white border-red-500" },
 ];
 
 const statusPill = (s: AttendanceStatus) =>
@@ -39,6 +41,7 @@ const currentMonth = () => new Date().toISOString().slice(0, 7);
 type Tab = "daily" | "monthly" | "history";
 
 export default function AttendancePage() {
+  const { t } = useLang();
   const [tab, setTab] = useState<Tab>("daily");
   const [staff, setStaff] = useState<StaffMember[]>([]);
 
@@ -97,7 +100,7 @@ export default function AttendancePage() {
   // Step 1 (sokal): status + entry time save
   const saveEntry = async (id: string) => {
     const status = statusDraft[id] || records[id]?.status;
-    if (!status) return showError("Age status select korun (Uposthit/Half/Chuti/Absent)");
+    if (!status) return showError(t("att.needStatus"));
     let inTime = (timeDraft[id]?.inTime || records[id]?.inTime || "").trim();
     // present/half hole entry time must, khali thakle ekhon dhore nebo
     if ((status === "present" || status === "half") && !inTime) inTime = nowHM();
@@ -107,9 +110,9 @@ export default function AttendancePage() {
       const saved = await markAttendance(id, date, status, { inTime: status === "leave" || status === "absent" ? "" : inTime, outTime });
       setRecords((p) => ({ ...p, [id]: saved }));
       setTimeDraft((p) => ({ ...p, [id]: { inTime: saved.inTime || "", outTime: saved.outTime || "" } }));
-      showSuccess("Entry save hoise");
+      showSuccess(t("att.entrySaved"));
     } catch (e) {
-      showError((e as Error).message);
+      showError(t((e as Error).message));
     } finally {
       setSaving(null);
     }
@@ -118,18 +121,18 @@ export default function AttendancePage() {
   // Step 2 (rate): exit time save
   const saveExit = async (id: string) => {
     const rec = records[id];
-    if (!rec) return showError("Age sokale Entry save korun");
-    if (rec.status === "leave" || rec.status === "absent") return showError("Chuti/Absent er exit lage na");
+    if (!rec) return showError(t("att.needEntry"));
+    if (rec.status === "leave" || rec.status === "absent") return showError(t("att.noExitLeave"));
     const outTime = (timeDraft[id]?.outTime || "").trim() || nowHM();
-    if (rec.inTime && outTime < rec.inTime) return showError("Exit time entry er age hote pare na");
+    if (rec.inTime && outTime < rec.inTime) return showError(t("att.timeOrder"));
     setSaving(`${id}-exit`);
     try {
       const saved = await updateAttendanceTimes(id, date, { outTime });
       setRecords((p) => ({ ...p, [id]: saved }));
       setTimeDraft((p) => ({ ...p, [id]: { inTime: saved.inTime || "", outTime: saved.outTime || "" } }));
-      showSuccess("Exit save hoise");
+      showSuccess(t("att.exitSaved"));
     } catch (e) {
-      showError((e as Error).message);
+      showError(t((e as Error).message));
     } finally {
       setSaving(null);
     }
@@ -142,19 +145,19 @@ export default function AttendancePage() {
 
   const markAllPresent = async () => {
     const pending = staff.filter((s) => !records[s._id]);
-    if (!pending.length) return showError("Sobar entry hoye gese");
+    if (!pending.length) return showError(t("att.allDone"));
     setSaving("all");
     try {
-      const t = nowHM();
+      const now = nowHM();
       for (const s of pending) {
-        const saved = await markAttendance(s._id, date, "present", { inTime: t });
+        const saved = await markAttendance(s._id, date, "present", { inTime: now });
         setRecords((p) => ({ ...p, [s._id]: saved }));
         setStatusDraft((p) => ({ ...p, [s._id]: "present" }));
-        setTimeDraft((p) => ({ ...p, [s._id]: { inTime: t, outTime: "" } }));
+        setTimeDraft((p) => ({ ...p, [s._id]: { inTime: now, outTime: "" } }));
       }
-      showSuccess(`${pending.length} joner entry ekbare hoise`);
+      showSuccess(t("att.allMarked", { n: pending.length }));
     } catch (e) {
-      showError((e as Error).message);
+      showError(t((e as Error).message));
     } finally {
       setSaving(null);
     }
@@ -199,21 +202,21 @@ export default function AttendancePage() {
   return (
     <div>
       <div className="flex flex-wrap gap-3 justify-between items-center mb-4">
-        <h2 className="text-xl font-black">Hajira Management</h2>
+        <h2 className="text-xl font-black">{t("att.title")}</h2>
         <div className="flex gap-2 bg-card-bg border border-card-border rounded-md p-1">
           {(
             [
-              { v: "daily", label: "Hajira Nin" },
-              { v: "monthly", label: "Mashik Report" },
-              { v: "history", label: "History" },
-            ] as { v: Tab; label: string }[]
-          ).map((t) => (
+              { v: "daily", labelKey: "att.daily" },
+              { v: "monthly", labelKey: "att.monthly" },
+              { v: "history", labelKey: "att.history" },
+            ] as { v: Tab; labelKey: string }[]
+          ).map((tb) => (
             <button
-              key={t.v}
-              onClick={() => setTab(t.v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black ${tab === t.v ? "bg-brand text-white" : "text-muted"}`}
+              key={tb.v}
+              onClick={() => setTab(tb.v)}
+              className={`px-3 py-1.5 rounded-md text-xs font-black ${tab === tb.v ? "bg-brand text-white" : "text-muted"}`}
             >
-              {t.label}
+              {t(tb.labelKey)}
             </button>
           ))}
         </div>
@@ -224,8 +227,8 @@ export default function AttendancePage() {
         <>
           <div className="flex flex-wrap gap-3 justify-between items-center mb-2">
             <p className="text-xs text-muted">
-              Uposthit: {counts.present || 0} • Half: {counts.half || 0} • Chuti: {counts.leave || 0} • Absent:{" "}
-              {counts.absent || 0} • Entry baki: {staff.length - Object.keys(records).length}
+              {t("st.optPresent")}: {counts.present || 0} • {t("st.optHalf")}: {counts.half || 0} • {t("st.optLeave")}: {counts.leave || 0} • {t("st.optAbsent")}:{" "}
+              {counts.absent || 0} • {t("att.entryLeft", { n: staff.length - Object.keys(records).length })}
             </p>
             <div className="flex gap-2 items-center">
               <button
@@ -233,7 +236,7 @@ export default function AttendancePage() {
                 disabled={saving === "all"}
                 className="px-3 py-2 rounded-md text-xs font-black bg-accent/10 text-accent border border-accent/20 hover:bg-accent hover:text-white transition"
               >
-                Sobarke Uposthit + Ekhon time
+                {t("att.markAll")}
               </button>
               <input
                 type="date"
@@ -245,8 +248,7 @@ export default function AttendancePage() {
             </div>
           </div>
           <p className="text-[11px] text-muted mb-3 bg-card-bg border border-card-border rounded-md px-3 py-2">
-            Standard flow — <b className="text-text-main">sokale 1 bar:</b> status + Dhukar time diye <b className="text-text-main">Entry Save</b> •{" "}
-            <b className="text-text-main">rate 1 bar:</b> Ber howar time diye <b className="text-text-main">Exit Save</b>
+            {t("att.flow")}
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
@@ -267,16 +269,16 @@ export default function AttendancePage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-black text-sm truncate">{s.name}</p>
                       <p className="text-[11px] text-muted">
-                        {s.job} • {hrs !== null ? <span className="text-accent font-bold">{hrs}h duty</span> : "duty sesh hoy nai"}
+                        {t(jobKey(s.job))} • {hrs !== null ? <span className="text-accent font-bold">{t("att.dutyDone", { h: hrs })}</span> : t("att.dutyLeft")}
                       </p>
                     </div>
                     {rec ? (
                       <span className={`text-[10px] font-black px-2 py-1 rounded-full uppercase ${statusPill(rec.status)}`}>
-                        {rec.status}
+                        {t(`st.${rec.status}`)}
                       </span>
                     ) : (
                       <span className="text-[10px] font-black px-2 py-1 rounded-full bg-bg-main border border-card-border text-muted uppercase">
-                        Entry baki
+                        {t("att.pending")}
                       </span>
                     )}
                   </div>
@@ -294,7 +296,7 @@ export default function AttendancePage() {
                           }`}
                         >
                           {o.icon}
-                          {o.label}
+                          {t(o.labelKey)}
                         </button>
                       );
                     })}
@@ -307,14 +309,14 @@ export default function AttendancePage() {
                       disabled={saving === `${s._id}-entry`}
                       className="w-full py-2 rounded-md text-xs font-black bg-brand text-white disabled:opacity-50"
                     >
-                      {entryDone ? "Update kore din" : "Chuti / Absent Save korun"}
+                      {entryDone ? t("att.updateGeneric") : t("att.leaveSave")}
                     </button>
                   ) : (
                   <div className="grid grid-cols-2 gap-2">
                     {/* ENTRY */}
                     <div className={`rounded-md border p-2 ${entryDone ? "border-accent/30 bg-accent/5" : "border-card-border bg-bg-main"}`}>
                       <p className="text-[10px] font-black uppercase tracking-wide text-muted mb-1.5">
-                        1. Entry {entryDone && rec?.inTime ? <span className="text-accent">✓ {rec.inTime}</span> : ""}
+                        {t("att.entry")} {entryDone && rec?.inTime ? <span className="text-accent">✓ {rec.inTime}</span> : ""}
                       </p>
                       <div className="flex items-center gap-1">
                         <input
@@ -326,7 +328,7 @@ export default function AttendancePage() {
                           className="bg-card-bg border border-card-border rounded-lg px-1.5 py-1.5 text-xs font-bold outline-none w-full"
                         />
                         <button onClick={() => setNow(s._id, "inTime")} className="text-[10px] font-black text-accent px-1 shrink-0">
-                          Ekhon
+                          {t("att.now")}
                         </button>
                       </div>
                       <button
@@ -334,14 +336,14 @@ export default function AttendancePage() {
                         disabled={saving === `${s._id}-entry`}
                         className="mt-1.5 w-full py-1.5 rounded-lg text-[11px] font-black bg-brand text-white disabled:opacity-50"
                       >
-                        {entryDone ? "Entry Update" : "Entry Save"}
+                        {entryDone ? t("att.entryUpdate") : t("att.entrySave")}
                       </button>
                     </div>
 
                     {/* EXIT */}
                     <div className={`rounded-md border p-2 ${exitDone ? "border-accent/30 bg-accent/5" : "border-card-border bg-bg-main"}`}>
                       <p className="text-[10px] font-black uppercase tracking-wide text-muted mb-1.5">
-                        2. Exit {exitDone ? <span className="text-accent">✓ {rec?.outTime}</span> : entryDone ? <span>• baki</span> : ""}
+                        {t("att.exit")} {exitDone ? <span className="text-accent">✓ {rec?.outTime}</span> : entryDone ? <span>{t("att.leftExit")}</span> : ""}
                       </p>
                       <div className="flex items-center gap-1">
                         <input
@@ -358,7 +360,7 @@ export default function AttendancePage() {
                           disabled={!entryDone}
                           className="text-[10px] font-black text-red-500 px-1 shrink-0 disabled:opacity-40"
                         >
-                          Ekhon
+                          {t("att.now")}
                         </button>
                       </div>
                       <button
@@ -366,7 +368,7 @@ export default function AttendancePage() {
                         disabled={!entryDone || saving === `${s._id}-exit`}
                         className="mt-1.5 w-full py-1.5 rounded-lg text-[11px] font-black bg-accent text-white disabled:opacity-40"
                       >
-                        {exitDone ? "Exit Update" : "Exit Save"}
+                        {exitDone ? t("att.exitUpdate") : t("att.exitSave")}
                       </button>
                     </div>
                   </div>
@@ -375,8 +377,8 @@ export default function AttendancePage() {
               );
             })}
           </div>
-          {staff.length === 0 && <p className="text-muted text-center mt-8">Age Staff page e kormochari add korun.</p>}
-          <p className="text-xs text-muted mt-4 text-center">Hajira auto beton hisabe jome — Staff page e mash seshe paoa/baki dekhun.</p>
+          {staff.length === 0 && <p className="text-muted text-center mt-8">{t("att.noStaff")}</p>}
+          <p className="text-xs text-muted mt-4 text-center">{t("att.autoNote")}</p>
         </>
       )}
 
@@ -384,7 +386,7 @@ export default function AttendancePage() {
       {tab === "monthly" && (
         <>
           <div className="flex flex-wrap gap-3 justify-between items-center mb-4">
-            <p className="text-xs text-muted font-bold">Ke koto din present — masher hisab</p>
+            <p className="text-xs text-muted font-bold">{t("att.monthSub")}</p>
             <input
               type="month"
               value={month}
@@ -396,13 +398,13 @@ export default function AttendancePage() {
             <table className="w-full text-sm min-w-[720px]">
               <thead className="bg-bg-main text-muted text-left">
                 <tr>
-                  <th className="p-3">Staff</th>
-                  <th className="p-3 text-center">Present</th>
-                  <th className="p-3 text-center">Half</th>
-                  <th className="p-3 text-center">Chuti</th>
-                  <th className="p-3 text-center">Absent</th>
-                  <th className="p-3 text-center">Mot din</th>
-                  <th className="p-3 text-center">Duty hour</th>
+                  <th className="p-3">{t("att.thStaff")}</th>
+                  <th className="p-3 text-center">{t("att.thPresent")}</th>
+                  <th className="p-3 text-center">{t("att.thHalf")}</th>
+                  <th className="p-3 text-center">{t("att.thLeave")}</th>
+                  <th className="p-3 text-center">{t("att.thAbsent")}</th>
+                  <th className="p-3 text-center">{t("att.thTotal")}</th>
+                  <th className="p-3 text-center">{t("att.thHours")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -411,7 +413,7 @@ export default function AttendancePage() {
                     <td className="p-3">
                       <p className="font-black text-text-main">{r.staff.name}</p>
                       <p className="text-[11px] text-muted">
-                        {r.staff.job} • effective: {r.present + r.half * 0.5} din
+                        {t(jobKey(r.staff.job))} • {t("att.effective", { n: r.present + r.half * 0.5 })}
                       </p>
                     </td>
                     <td className="p-3 text-center font-black text-accent">{r.present}</td>
@@ -426,9 +428,9 @@ export default function AttendancePage() {
                 ))}
               </tbody>
             </table>
-            {summary.length === 0 && <p className="text-center text-muted py-8 text-sm">Staff nai.</p>}
+            {summary.length === 0 && <p className="text-center text-muted py-8 text-sm">{t("att.noStaff2")}</p>}
           </div>
-          <p className="text-[11px] text-muted mt-2">Effective din = Present + Half×0.5 — beton e etai dhore (Staff page e auto hisab hoy).</p>
+          <p className="text-[11px] text-muted mt-2">{t("att.effNote")}</p>
         </>
       )}
 
@@ -443,7 +445,7 @@ export default function AttendancePage() {
             >
               {staff.map((s) => (
                 <option key={s._id} value={s._id}>
-                  {s.name} — {s.job}
+                  {s.name} — {t(jobKey(s.job))}
                 </option>
               ))}
             </select>
@@ -454,7 +456,7 @@ export default function AttendancePage() {
               className="px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm"
             />
             <span className="text-xs text-muted font-bold ml-auto">
-              {historyStaff?.name}: Present {hPresent} • Half {hHalf} • Entry {historyList.length} din
+              {t("att.histSub", { name: historyStaff?.name || "", p: hPresent, h: hHalf, n: historyList.length })}
             </span>
           </div>
 
@@ -462,11 +464,11 @@ export default function AttendancePage() {
             <table className="w-full text-sm min-w-[640px]">
               <thead className="bg-bg-main text-muted text-left">
                 <tr>
-                  <th className="p-3">Tarikh</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Dhuklo</th>
-                  <th className="p-3">Ber holo</th>
-                  <th className="p-3">Duty</th>
+                  <th className="p-3">{t("att.thDate")}</th>
+                  <th className="p-3">{t("att.thStatus")}</th>
+                  <th className="p-3">{t("att.thIn")}</th>
+                  <th className="p-3">{t("att.thOut")}</th>
+                  <th className="p-3">{t("att.thDuty")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -477,7 +479,7 @@ export default function AttendancePage() {
                       <td className="p-3 font-bold">{a.date}</td>
                       <td className="p-3">
                         <span className={`text-[11px] font-black px-2 py-1 rounded-full uppercase ${statusPill(a.status)}`}>
-                          {a.status}
+                          {t(`st.${a.status}`)}
                         </span>
                       </td>
                       <td className="p-3 font-bold flex items-center gap-1">
@@ -491,7 +493,7 @@ export default function AttendancePage() {
                 })}
               </tbody>
             </table>
-            {historyList.length === 0 && <p className="text-center text-muted py-8 text-sm">Ei mashe kono entry nai.</p>}
+            {historyList.length === 0 && <p className="text-center text-muted py-8 text-sm">{t("att.noEntry")}</p>}
           </div>
         </>
       )}

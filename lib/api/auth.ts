@@ -28,7 +28,7 @@ export async function login(data: { email: string; password: string }): Promise<
   await delay();
   const users = getStoredUsers();
   const found = users.find((u) => u.email === data.email && u.password === data.password);
-  if (!found) throw new Error("Invalid email or password");
+  if (!found) throw new Error("err.invalidLogin");
   const { password: _pw, ...user } = found;
   const token = `mock-jwt-${Date.now()}-${user._id}`;
   return { user, token };

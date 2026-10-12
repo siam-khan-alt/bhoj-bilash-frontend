@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
+import { useLang } from "@/context/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLang();
   return (
     <footer className="bg-card-bg border-t border-card-border mt-10">
       <div className="container mx-auto px-6 lg:px-16 py-12">
@@ -13,21 +17,21 @@ export default function Footer() {
                 Bhoj<span className="text-brand">Bilash</span>
               </span>
             </div>
-            <p className="text-sm text-muted leading-relaxed">Delicious food delivered fast and fresh, right to your doorstep.</p>
+            <p className="text-sm text-muted leading-relaxed">{t("foot.tagline")}</p>
           </div>
 
           <div>
-            <h4 className="font-black text-text-main text-sm mb-4 uppercase tracking-wide">Quick Links</h4>
+            <h4 className="font-black text-text-main text-sm mb-4 uppercase tracking-wide">{t("foot.quick")}</h4>
             <div className="flex flex-col gap-2.5">
-              <Link href="/" className="text-sm text-muted hover:text-brand transition">Home</Link>
-              <Link href="/menu" className="text-sm text-muted hover:text-brand transition">Menu</Link>
-              <Link href="/login" className="text-sm text-muted hover:text-brand transition">Login</Link>
-              <Link href="/register" className="text-sm text-muted hover:text-brand transition">Register</Link>
+              <Link href="/" className="text-sm text-muted hover:text-brand transition">{t("nav.home")}</Link>
+              <Link href="/menu" className="text-sm text-muted hover:text-brand transition">{t("nav.menu")}</Link>
+              <Link href="/login" className="text-sm text-muted hover:text-brand transition">{t("nav.login")}</Link>
+              <Link href="/register" className="text-sm text-muted hover:text-brand transition">{t("foot.register")}</Link>
             </div>
           </div>
 
           <div>
-            <h4 className="font-black text-text-main text-sm mb-4 uppercase tracking-wide">Contact Us</h4>
+            <h4 className="font-black text-text-main text-sm mb-4 uppercase tracking-wide">{t("foot.contact")}</h4>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-sm text-muted">
                 <MapPin className="w-4 h-4 text-brand flex-shrink-0" />
@@ -45,7 +49,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-black text-text-main text-sm mb-4 uppercase tracking-wide">Follow Us</h4>
+            <h4 className="font-black text-text-main text-sm mb-4 uppercase tracking-wide">{t("foot.follow")}</h4>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-md bg-bg-main border border-card-border flex items-center justify-center text-muted hover:text-brand hover:border-brand/30 transition">
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.8z" /></svg>
@@ -61,7 +65,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-card-border pt-6 text-center">
-          <p className="text-xs text-muted">© {new Date().getFullYear()} Bhoj Bilash. All rights reserved. Built with ❤️ for food lovers.</p>
+          <p className="text-xs text-muted">{t("foot.rights", { year: new Date().getFullYear() })}</p>
         </div>
       </div>
     </footer>

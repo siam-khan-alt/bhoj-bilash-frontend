@@ -8,11 +8,12 @@ import {
   UtensilsCrossed,
   Wallet,
   Calculator,
-  ShoppingCart,
+  ReceiptText,
   ArrowRight,
 } from "lucide-react";
 import { getAllOrders } from "@/lib/api/orders";
 import { getExpenses } from "@/lib/api/expenses";
+import { useLang } from "@/context/LanguageContext";
 import Button from "@/components/common/Button";
 
 export default function AdminHome() {
@@ -27,6 +28,7 @@ export default function AdminHome() {
     todayExpCount: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -75,59 +77,59 @@ export default function AdminHome() {
 
   const cards = [
     {
-      label: "Ajker sale",
+      label: t("ov.sale"),
       value: `৳${stats.todayRevenue}`,
-      sub: `${stats.todayOrders} ta paid order`,
+      sub: t("ov.saleSub", { n: stats.todayOrders }),
       icon: DollarSign,
       tone: "text-brand bg-brand/10",
       href: "/admin/orders",
-      link: "Orders dekhun",
+      link: t("ov.viewOrders"),
     },
     {
-      label: "Ajker khoroc",
+      label: t("ov.exp"),
       value: `৳${stats.todayExpense}`,
-      sub: `${stats.todayExpCount} ta entry`,
+      sub: t("ov.expSub", { n: stats.todayExpCount }),
       icon: Wallet,
       tone: "text-red-500 bg-red-500/10",
       href: "/admin/expenses",
-      link: "Khoroc dekhun",
+      link: t("ov.viewExp"),
     },
     {
-      label: "Ajker cash (hate)",
+      label: t("ov.cash"),
       value: `৳${cash}`,
-      sub: cash >= 0 ? "Sale − khoroc • hisab milse" : "Minus! check korun",
+      sub: cash >= 0 ? t("ov.cashOk") : t("ov.cashBad"),
       icon: Calculator,
       tone: "text-accent bg-accent/10",
       hot: cash < 0,
       href: "/admin/hisab",
-      link: "Hisab dekhun",
+      link: t("ov.viewHisab"),
     },
     {
-      label: "Total Orders",
+      label: t("ov.orders"),
       value: stats.totalOrders,
-      sub: "Sob somoy miliye",
+      sub: t("ov.ordersSub"),
       icon: ShoppingBag,
       tone: "text-brand bg-brand/10",
       href: "/admin/orders",
-      link: "Orders dekhun",
+      link: t("ov.viewOrders"),
     },
     {
-      label: "Total Revenue",
+      label: t("ov.rev"),
       value: `৳${stats.totalRevenue}`,
-      sub: "Paid orders total",
+      sub: t("ov.revSub"),
       icon: DollarSign,
       tone: "text-accent bg-accent/10",
       href: "/admin/hisab",
-      link: "Hisab dekhun",
+      link: t("ov.viewHisab"),
     },
     {
-      label: "Food Items",
+      label: t("ov.foods"),
       value: stats.totalFoods,
-      sub: `${stats.availFoods} ta menu te available`,
+      sub: t("ov.foodsSub", { n: stats.availFoods }),
       icon: UtensilsCrossed,
       tone: "text-blue-500 bg-blue-500/10",
       href: "/admin/foods",
-      link: "Foods manage",
+      link: t("ov.manageFoods"),
     },
   ];
 
@@ -135,18 +137,18 @@ export default function AdminHome() {
     <div>
       <div className="flex flex-wrap gap-3 justify-between items-center mb-1">
         <div>
-          <h2 className="text-xl font-black text-text-main">Admin Overview</h2>
-          <p className="text-xs text-muted mt-0.5">Ajker dokan ek nojore — bill banate POS e jan.</p>
+          <h2 className="text-xl font-black text-text-main">{t("ov.title")}</h2>
+          <p className="text-xs text-muted mt-0.5">{t("ov.sub")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/admin/pos">
-            <Button variant="primary" className="text-xs" icon={<ShoppingCart className="w-4 h-4" />}>
-              POS Terminal
+            <Button variant="primary" className="text-xs" icon={<ReceiptText className="w-4 h-4" />}>
+              {t("ov.pos")}
               <span className="bg-white/20 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">BILL</span>
             </Button>
           </Link>
           <Link href="/admin/hisab">
-            <Button variant="secondary" className="text-xs">Full Hisab dekhun</Button>
+            <Button variant="secondary" className="text-xs">{t("ov.hisab")}</Button>
           </Link>
         </div>
       </div>

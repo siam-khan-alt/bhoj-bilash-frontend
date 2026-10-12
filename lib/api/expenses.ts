@@ -37,7 +37,7 @@ export async function getExpenses(): Promise<Expense[]> {
 
 export async function addExpense(data: { date: string; category: ExpenseCategory; note: string; amount: number; by: string }): Promise<Expense> {
   await delay();
-  if (!data.amount || Number(data.amount) <= 0) throw new Error("Sothik taka likhun");
+  if (!data.amount || Number(data.amount) <= 0) throw new Error("err.amountInvalid");
   const list = getStored();
   const item: Expense = {
     _id: `exp_${Date.now()}`,

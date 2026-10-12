@@ -29,8 +29,8 @@ export async function getStaff(): Promise<StaffMember[]> {
 
 export async function addStaff(data: { name: string; job: string; phone: string; monthlySalary: number }): Promise<StaffMember> {
   await delay();
-  if (!data.name.trim()) throw new Error("Nam likhun");
-  if (!data.monthlySalary || Number(data.monthlySalary) <= 0) throw new Error("Sothik beton likhun");
+  if (!data.name.trim()) throw new Error("err.nameRequired");
+  if (!data.monthlySalary || Number(data.monthlySalary) <= 0) throw new Error("err.salaryInvalid");
   const list = getStored();
   const item: StaffMember = {
     _id: `staff_${Date.now()}`,
@@ -49,7 +49,7 @@ export async function updateStaff(id: string, patch: Partial<Pick<StaffMember, "
   await delay();
   const list = getStored();
   const idx = list.findIndex((s) => s._id === id);
-  if (idx === -1) throw new Error("Staff not found");
+  if (idx === -1) throw new Error("err.staffNotFound");
   list[idx] = { ...list[idx], ...patch };
   setStored(list);
   return list[idx];

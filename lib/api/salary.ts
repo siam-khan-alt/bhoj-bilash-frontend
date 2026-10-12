@@ -29,8 +29,8 @@ export async function getSalaryPayments(month?: string): Promise<SalaryPayment[]
 
 export async function paySalary(data: { staffId: string; month: string; amount: number; note: string }): Promise<SalaryPayment> {
   await delay();
-  if (!data.amount || Number(data.amount) <= 0) throw new Error("Sothik taka likhun");
-  if (!data.month) throw new Error("Mash select korun");
+  if (!data.amount || Number(data.amount) <= 0) throw new Error("err.amountInvalid");
+  if (!data.month) throw new Error("err.monthRequired");
   const list = getStored();
   const item: SalaryPayment = {
     _id: `sal_${Date.now()}`,

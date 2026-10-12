@@ -5,6 +5,7 @@ import { getFoods } from "@/lib/api/food";
 import { createOrder } from "@/lib/api/orders";
 import { getPackages, effectivePrice } from "@/lib/api/packages";
 import { useRestaurant } from "@/context/RestaurantContext";
+import { useLang } from "@/context/LanguageContext";
 import BillReceipt from "@/components/pos/BillReceipt";
 import type { Food, Package, Order } from "@/types";
 import Button from "@/components/common/Button";
@@ -13,6 +14,7 @@ import { Plus, Trash2, UtensilsCrossed, ShoppingBag, Check, Minus, Package as Pk
 
 export default function POSPage() {
   const { config } = useRestaurant();
+  const { t } = useLang();
   const [foods, setFoods] = useState<Food[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
 
@@ -44,7 +46,7 @@ export default function POSPage() {
     // package vangbe na — cart e 1 line: package nam + dam
     // sesh item thakle bad diye janano hobe
     const missing = p.items.filter((it) => foodById(it.foodId)?.available === false).map((it) => foodById(it.foodId)?.name || "item");
-    if (missing.length === p.items.length) return showError(`${p.name} ekhon deya jabe na (${missing.join(", ")} sesh)`);
+    if (missing.length === p.items.length) return showError(t("pos.unavail", { name: p.name, items: missing.join(", ") }));
     const detail = p.items.map((it) => `${foodById(it.foodId)?.name || "item"} x${it.qty}`).join(" + ");
     const price = effectivePrice(p);
     setCart((prev) => {
@@ -52,7 +54,7 @@ export default function POSPage() {
       if (ex) return prev.map((x) => (x.kind === "package" && x.pkgId === p._id ? { ...x, qty: x.qty + 1 } : x));
       return [...prev, { kind: "package", key: `pkg_${p._id}`, pkgId: p._id, name: p.name, detail, unitPrice: price, qty: 1 } as CartLine];
     });
-    showSuccess(`${p.name} add — ৳${price}${missing.length > 0 ? ` (${missing.join(", ")} sesh!)` : ""}`);
+    showSuccess(t("pos.added", { name: p.name, price }) + (missing.length > 0 ? " " + t("pos.partial", { items: missing.join(", ") }) : ""));
   };
 
   const addToCart = (f: Food) => {
@@ -77,13 +79,13 @@ export default function POSPage() {
   const total = subtotal - discountAmt;
 
   const handlePlace = async () => {
-    if (cart.length === 0) return showError("Cart empty");
+    if (cart.length === 0) return showError(t("pos.cartEmpty"));
     const items = cart.map((l) =>
       l.kind === "food"
         ? { foodItemId: l.food._id, quantity: l.qty }
         : { foodItemId: `pkgline_${l.pkgId}`, quantity: l.qty, label: l.name, price: l.unitPrice }
     );
-    const typeLabel = orderType === "both" ? "Ekhane+Parcel" : orderType === "parcel" ? "Parcel" : "Ekhane khabe";
+    const typeLabel = orderType === "both" ? t("pos.typeBoth") : orderType === "parcel" ? t("pos.typeParcel") : t("pos.typeDine");
     const customer = { _id: `pos_${Date.now()}`, name: `Walk-in ${customerPhone || "customer"} (${typeLabel})`, email: `${customerPhone || "walkin"}@pos.local` };
     try {
       const { order } = await createOrder(items, customer, { orderType, discount: discountAmt });
@@ -93,7 +95,7 @@ export default function POSPage() {
       setCustomerPhone("");
       setDiscount("");
     } catch (e) {
-      showError((e as Error).message);
+      showError(t((e as Error).message));
     }
   };
 
@@ -110,13 +112,13 @@ export default function POSPage() {
       {/* ---- LEFT: menu (sob item ek screen e, scroll chara) ---- */}
       <div className="flex-1 flex flex-col min-h-0 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-3 shrink-0">
-          <h2 className="text-xl font-black mr-auto">POS — Walk-in Order</h2>
+          <h2 className="text-xl font-black mr-auto">{t("pos.title")}</h2>
           <div className="flex items-center gap-2 rounded-md border border-card-border bg-card-bg px-3 py-2 w-full sm:w-64">
             <Search className="h-4 w-4 shrink-0 text-muted" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Khabar khujun... (nam likhun)"
+              placeholder={t("pos.searchPh")}
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
             />
             {query && (
@@ -137,7 +139,7 @@ export default function POSPage() {
                   cat === c ? "bg-brand text-white border-brand" : "bg-card-bg border-card-border text-muted hover:border-brand/40"
                 }`}
               >
-                {c}
+                {c === "All" ? t("menu.all") : c}
               </button>
             ))}
           </div>
@@ -145,7 +147,7 @@ export default function POSPage() {
 
         {packages.length > 0 && (
           <div className="mb-2 shrink-0">
-            <p className="text-[11px] font-black uppercase tracking-wide text-muted mb-1.5">Package — 1 tap e full set</p>
+            <p className="text-[11px] font-black uppercase tracking-wide text-muted mb-1.5">{t("pos.pkg")}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-28 overflow-y-auto pr-0.5">
               {packages.map((p) => {
                 const hasOffer = p.offerPrice && Number(p.offerPrice) > 0;
@@ -168,8 +170,8 @@ export default function POSPage() {
         )}
 
         <div className="flex items-center justify-between mb-1.5 shrink-0">
-          <p className="text-[11px] font-black uppercase tracking-wide text-muted">Menu — tap korlei add</p>
-          <p className="text-[11px] font-bold text-muted">{visibleFoods.length}/{availFoods.length} items</p>
+          <p className="text-[11px] font-black uppercase tracking-wide text-muted">{t("pos.menu")}</p>
+          <p className="text-[11px] font-bold text-muted">{t("pos.count", { a: visibleFoods.length, b: availFoods.length })}</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1 pb-1">
           {visibleFoods.map((f) => {
@@ -203,7 +205,7 @@ export default function POSPage() {
                       <span className="flex items-center gap-1 bg-white rounded-full pl-0.5 pr-1 py-0.5 shadow z-10" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setQty(`food_${f._id}`, -1)}
-                          aria-label="Komao"
+                          aria-label={t("pos.dec")}
                           className="w-5 h-5 rounded-full bg-bg-main border border-card-border flex items-center justify-center text-text-main hover:border-brand"
                         >
                           <Minus className="w-3 h-3" />
@@ -211,7 +213,7 @@ export default function POSPage() {
                         <span className="text-[11px] font-black text-text-main min-w-4 text-center">{qty}</span>
                         <button
                           onClick={() => addToCart(f)}
-                          aria-label="Barao"
+                          aria-label={t("pos.inc")}
                           className="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center hover:bg-brand-hover"
                         >
                           <Plus className="w-3 h-3" />
@@ -230,14 +232,14 @@ export default function POSPage() {
         </div>
         {visibleFoods.length === 0 && (
           <p className="text-xs text-muted text-center py-8 shrink-0">
-            {q || cat !== "All" ? "Mil pai nai — search/category bodlan." : "Menu khali — Foods page theke item add korun."}
+            {q || cat !== "All" ? t("pos.noMatch") : t("pos.emptyMenu")}
           </p>
         )}
       </div>
 
       {/* ---- RIGHT: cart (fixed footer, lines scroll) ---- */}
       <div className="w-full lg:w-80 shrink-0 bg-card-bg border border-card-border rounded-lg p-5 lg:h-full lg:min-h-0 flex flex-col lg:overflow-hidden">
-        <h3 className="font-black mb-3 shrink-0">Cart ({cart.length})</h3>
+        <h3 className="font-black mb-3 shrink-0">{t("pos.cart")} ({cart.length})</h3>
         <div className="space-y-2 mb-4 max-h-48 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto lg:pr-1">
           {cart.map((l) => (
             <div key={l.key} className={`flex justify-between items-center gap-2 text-sm border rounded-md px-2.5 py-2 ${l.kind === "package" ? "border-brand/40 bg-brand/5" : "border-card-border bg-bg-main"}`}>
@@ -260,12 +262,12 @@ export default function POSPage() {
               </button>
             </div>
           ))}
-          {cart.length === 0 && <p className="text-xs text-muted text-center py-4">Cart khali — Menu theke khabar add korun</p>}
+          {cart.length === 0 && <p className="text-xs text-muted text-center py-4">{t("pos.emptyCart")}</p>}
         </div>
 
         <div className="shrink-0 lg:overflow-y-auto">
         <div className="space-y-3 mb-4">
-          <input placeholder="Customer Phone (optional)" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm" />
+          <input placeholder={t("pos.phonePh")} value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full px-3 py-2 rounded-md border border-card-border bg-bg-main text-sm" />
           <div className="flex gap-2">
             <button
               onClick={() => setDineIn(!dineIn)}
@@ -274,7 +276,7 @@ export default function POSPage() {
               <span className={`w-4 h-4 rounded-md flex items-center justify-center border ${dineIn ? "bg-white border-white" : "border-card-border"}`}>
                 {dineIn && <Check className="w-3 h-3 text-brand" />}
               </span>
-              <UtensilsCrossed className="w-3.5 h-3.5" /> Ekhane khabe
+              <UtensilsCrossed className="w-3.5 h-3.5" /> {t("pos.dineIn")}
             </button>
             <button
               onClick={() => setParcel(!parcel)}
@@ -283,26 +285,26 @@ export default function POSPage() {
               <span className={`w-4 h-4 rounded-md flex items-center justify-center border ${parcel ? "bg-white border-white" : "border-card-border"}`}>
                 {parcel && <Check className="w-3 h-3 text-brand" />}
               </span>
-              <ShoppingBag className="w-3.5 h-3.5" /> Parcel nibe
+              <ShoppingBag className="w-3.5 h-3.5" /> {t("pos.parcel")}
             </button>
           </div>
-          {!dineIn && !parcel && <p className="text-[11px] text-amber-500 font-bold">Ekta o tick nai — Ekhane khabe dhore neya hobe.</p>}
+          {!dineIn && !parcel && <p className="text-[11px] text-amber-500 font-bold">{t("pos.neither")}</p>}
           <div className="flex gap-2">
             <button onClick={() => setPayment("cash")} className={`flex-1 py-2 rounded-md font-bold text-xs border ${payment === "cash" ? "bg-brand text-white border-brand" : "bg-bg-main border-card-border"}`}>
-              Cash
+              {t("pos.cash")}
             </button>
             <button onClick={() => setPayment("card")} className={`flex-1 py-2 rounded-md font-bold text-xs border ${payment === "card" ? "bg-brand text-white border-brand" : "bg-bg-main border-card-border"}`}>
-              Card
+              {t("pos.card")}
             </button>
           </div>
         </div>
 
         <div className="flex justify-between text-sm text-muted mb-1">
-          <span>Subtotal</span>
+          <span>{t("pos.subtotal")}</span>
           <span className="font-bold text-text-main">৳{subtotal}</span>
         </div>
         <div className="flex items-center gap-2 mb-3">
-          <label className="text-xs font-black text-muted whitespace-nowrap">Char (৳)</label>
+          <label className="text-xs font-black text-muted whitespace-nowrap">{t("pos.discount")}</label>
           <input
             type="number"
             min={0}
@@ -314,14 +316,14 @@ export default function POSPage() {
           />
         </div>
         <div className="flex justify-between font-black text-lg mb-4">
-          <span>Total</span>
+          <span>{t("pos.total")}</span>
           <span className="text-brand">৳{total}</span>
         </div>
 
         <Button variant="primary" className="w-full justify-center" onClick={handlePlace}>
-          Place Order — {payment === "cash" ? "Cash" : "Card"}
+          {t("pos.place", { m: payment === "cash" ? t("pos.cash") : t("pos.card") })}
         </Button>
-        <p className="text-xs text-muted mt-2 text-center">Bill + QR receipt print hobe.</p>
+        <p className="text-xs text-muted mt-2 text-center">{t("pos.billHint")}</p>
         </div>
       </div>
 
@@ -330,10 +332,10 @@ export default function POSPage() {
           <div className="w-full max-w-sm">
             <div className="bg-card-bg border border-card-border rounded-lg p-4 mb-3 flex gap-2">
               <Button variant="primary" className="flex-1 justify-center" icon={<Printer className="w-4 h-4" />} onClick={() => window.print()}>
-                Print Bill
+                {t("pos.print")}
               </Button>
               <Button variant="secondary" icon={<X className="w-4 h-4" />} onClick={() => setLastOrder(null)}>
-                Close
+                {t("c.close")}
               </Button>
             </div>
             <BillReceipt order={lastOrder} shop={config} menuUrl={menuUrl} />
