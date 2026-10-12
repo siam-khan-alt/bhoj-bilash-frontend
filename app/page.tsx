@@ -1,65 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import { useRestaurant } from "@/context/RestaurantContext";
 import { useLang } from "@/context/LanguageContext";
 import { getPackages, effectivePrice } from "@/lib/api/packages";
 import { getFoods } from "@/lib/api/food";
+import { getAllOrders } from "@/lib/api/orders";
+import { getBestSellers, type BestSeller } from "@/lib/bestsellers";
 import type { Package, Food } from "@/types";
-import Button from "@/components/common/Button";
-import { ReceiptText, ClipboardList, UtensilsCrossed, Package as PkgIcon, BadgePercent } from "lucide-react";
+import BestSellers from "@/components/home/BestSellers";
+import HeroSlider from "@/components/home/HeroSlider";
+import CategoryShowcase from "@/components/home/CategoryShowcase";
+import OfferBanner from "@/components/home/OfferBanner";
+import Gallery from "@/components/home/Gallery";
+import Reviews from "@/components/home/Reviews";
+import OpeningHours from "@/components/home/OpeningHours";
+import VisitUs from "@/components/home/VisitUs";
+import { Package as PkgIcon, BadgePercent } from "lucide-react";
 
-/** Choto hotel entry — login thakle admin e pathao, na thakle login. Niche public package/offer (marketing). */
+/** Public home — hero slider (order → ranna → poribeshon), niche best-seller + package/offer. Staff login navbar-এ। */
 export default function HomePage() {
-  const { user } = useAuth();
-  const { config } = useRestaurant();
   const { t } = useLang();
   const [packages, setPackages] = useState<Package[]>([]);
   const [foods, setFoods] = useState<Food[]>([]);
+  const [best, setBest] = useState<BestSeller[]>([]);
 
   useEffect(() => {
-    getPackages(true).then(setPackages);
-    getFoods().then(setFoods).catch(() => {});
+    getPackages(true).then(setPackages).catch(() => {});
+    Promise.all([getFoods(), getAllOrders().catch(() => [])])
+      .then(([f, orders]) => {
+        setFoods(f);
+        setBest(getBestSellers(f, orders, 8));
+      })
+      .catch(() => {});
   }, []);
 
   const foodName = (id: string) => foods.find((f) => f._id === id)?.name || "item";
 
   return (
-    <div className="container mx-auto px-6 lg:px-16 py-16 text-center">
-      <p className="text-xs font-black tracking-widest uppercase text-brand mb-3">{config.name}</p>
-      <h1 className="text-3xl sm:text-4xl font-black mb-3">
-        {t("home.titleA")} <span className="text-brand">{t("home.titleB")}</span> {t("home.titleC")}
-      </h1>
-      <p className="text-muted text-sm max-w-md mx-auto mb-8">
-        {t("home.sub")}
-      </p>
+    <div className="container mx-auto px-6 lg:px-16 py-10 lg:py-16">
+      <HeroSlider />
 
-      {user ? (
-        <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/admin/pos">
-            <Button variant="primary" icon={<ReceiptText className="w-4 h-4" />}>{t("home.pos")}</Button>
-          </Link>
-          <Link href="/admin/orders">
-            <Button variant="secondary" icon={<ClipboardList className="w-4 h-4" />}>{t("home.orders")}</Button>
-          </Link>
-          {user.role === "admin" && (
-            <Link href="/admin/foods">
-              <Button variant="secondary" icon={<UtensilsCrossed className="w-4 h-4" />}>{t("home.foods")}</Button>
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/menu">
-            <Button variant="primary" className="px-8">{t("home.menuBtn")}</Button>
-          </Link>
-          <Link href="/login">
-            <Button variant="secondary" className="px-8">{t("home.staffLogin")}</Button>
-          </Link>
-        </div>
-      )}
+      <CategoryShowcase foods={foods} />
+
+      <BestSellers items={best} />
+
+      <OfferBanner packages={packages} foods={foods} />
 
       {packages.length > 0 && (
         <div className="mt-16 text-left">
@@ -93,6 +78,14 @@ export default function HomePage() {
           <p className="text-center text-xs text-muted mt-4">{t("home.pkgHint")}</p>
         </div>
       )}
+
+      <Gallery foods={foods} />
+
+      <Reviews />
+
+      <OpeningHours />
+
+      <VisitUs />
     </div>
   );
 }

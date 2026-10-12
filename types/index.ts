@@ -52,6 +52,21 @@ export interface RestaurantConfig {
   logo?: string;
   address?: string;
   phone?: string;
+  hours?: DayHours[]; // index = JS getDay() (0 = রবিবার) — ৭ দিনের সময়সূচি
+}
+
+export interface DayHours {
+  open: string; // "09:00"
+  close: string; // "22:00"
+  closed?: boolean; // true = সেদিন বন্ধ
+}
+
+export interface Review {
+  _id: string;
+  name: string;
+  rating: number; // 1–5
+  text: string;
+  createdAt: string;
 }
 
 // ---- Khata (staff + attendance + expense + salary) ----

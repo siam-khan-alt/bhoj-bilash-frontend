@@ -15,6 +15,7 @@ import {
   Receipt,
   Calculator,
   Package as PkgIcon,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 
@@ -24,7 +25,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
  * - cashier: dashboard, pos, orders, attendance, expenses
  *   (NO foods, NO packages, NO staff, NO hisab)
  */
-const CASHIER_BLOCKED = ["/admin/foods", "/admin/packages", "/admin/staff", "/admin/hisab"];
+const CASHIER_BLOCKED = ["/admin/foods", "/admin/packages", "/admin/staff", "/admin/hisab", "/admin/settings"];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -89,6 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 items: [
                   { href: "/admin/staff" as const, label: t("nav.staff"), icon: Users },
                   { href: "/admin/hisab" as const, label: t("nav.hisab"), icon: Calculator, badge: "NEW" },
+                  { href: "/admin/settings" as const, label: t("nav.settings"), icon: SettingsIcon },
                 ],
               },
             ]),
