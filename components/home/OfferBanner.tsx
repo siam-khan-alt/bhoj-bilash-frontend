@@ -26,6 +26,14 @@ export default function OfferBanner({ packages, foods }: { packages: Package[]; 
           }}
         />
         <div className="relative flex flex-col sm:flex-row sm:items-center gap-6">
+          {offer.image && (
+            <img
+              src={offer.image}
+              alt={offer.name}
+              className="w-full sm:w-44 h-40 sm:h-36 object-cover rounded-xl border border-white/30 shrink-0"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          )}
           <div className="flex-1">
             <p className="inline-flex items-center gap-2 bg-white/20 text-[11px] font-black tracking-widest uppercase px-3 py-1.5 rounded-full border border-white/30">
               <Timer className="w-3.5 h-3.5" /> {t("home.offerTag")}

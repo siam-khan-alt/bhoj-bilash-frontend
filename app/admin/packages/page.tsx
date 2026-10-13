@@ -24,6 +24,7 @@ export default function PackagesPage() {
   const [price, setPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
   const [offerNote, setOfferNote] = useState("");
+  const [image, setImage] = useState("");
   const [items, setItems] = useState<PackageItem[]>([]);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function PackagesPage() {
     setPrice("");
     setOfferPrice("");
     setOfferNote("");
+    setImage("");
     setItems([]);
     setShowForm(false);
   };
@@ -63,6 +65,7 @@ export default function PackagesPage() {
     setPrice(String(p.price));
     setOfferPrice(p.offerPrice ? String(p.offerPrice) : "");
     setOfferNote(p.offerNote || "");
+    setImage(p.image || "");
     setItems([...p.items]);
     setShowForm(true);
   };
@@ -92,6 +95,7 @@ export default function PackagesPage() {
         price: Number(price),
         offerPrice: offerPrice ? Number(offerPrice) : undefined,
         offerNote,
+        image: image.trim() || undefined,
       };
       if (editing) {
         await updatePackage(editing._id, data);
@@ -143,6 +147,17 @@ export default function PackagesPage() {
             </div>
             <Input label={t("pkg.offerPrice")} type="number" name="offerPrice" value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
             <Input label={t("pkg.offerNote")} name="offerNote" value={offerNote} onChange={(e) => setOfferNote(e.target.value)} />
+            <div className="sm:col-span-2">
+              <Input label={t("pkg.image")} name="image" value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://..." />
+              {image.trim() && (
+                <img
+                  src={image.trim()}
+                  alt=""
+                  className="w-24 h-24 rounded-lg object-cover border border-card-border mt-2"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-food.png"; }}
+                />
+              )}
+            </div>
           </div>
 
           <div>
@@ -185,12 +200,19 @@ export default function PackagesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {list.map((p) => (
           <div key={p._id} className={`bg-card-bg border rounded-lg p-5 ${p.active ? "border-card-border" : "border-card-border opacity-60"}`}>
-            <div className="flex justify-between items-start mb-1">
-              <div className="flex items-center gap-2">
-                <PkgIcon className="w-4 h-4 text-brand" />
-                <p className="font-black">{p.name}</p>
+            <div className="flex justify-between items-start mb-1 gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img
+                  src={p.image || "/placeholder-food.png"}
+                  alt={p.name}
+                  className="w-12 h-12 rounded-lg object-cover border border-card-border shrink-0"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-food.png"; }}
+                />
+                <div className="min-w-0">
+                  <p className="font-black flex items-center gap-1.5 truncate"><PkgIcon className="w-4 h-4 text-brand shrink-0" />{p.name}</p>
+                </div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 shrink-0">
                 <button onClick={() => openEdit(p)} className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded-lg"><Pencil className="w-4 h-4" /></button>
                 <button onClick={() => showConfirm(t("pkg.deleteConfirm", { name: p.name }), async () => { await deletePackage(p._id); showSuccess(t("pkg.deleted")); fetchAll(); })} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
               </div>

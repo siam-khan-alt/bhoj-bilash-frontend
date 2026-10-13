@@ -158,7 +158,9 @@ export default function POSPage() {
               {packages.map((p) => {
                 const hasOffer = p.offerPrice && Number(p.offerPrice) > 0;
                 return (
-                  <button key={p._id} onClick={() => addPackage(p)} className="bg-gradient-to-br from-brand/10 to-transparent border border-brand/30 rounded-md px-2.5 py-2 text-left hover:border-brand/60 active:scale-[0.99] transition">
+                  <button key={p._id} onClick={() => addPackage(p)} className="bg-gradient-to-br from-brand/10 to-transparent border border-brand/30 rounded-md px-2.5 py-2 text-left hover:border-brand/60 active:scale-[0.99] transition flex items-center gap-2">
+                    <img src={p.image || "/placeholder-food.png"} alt="" className="w-9 h-9 rounded-md object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-food.png"; }} />
+                    <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <PkgIcon className="w-3.5 h-3.5 text-brand shrink-0" />
                       <p className="font-black text-[13px] flex-1 truncate">{p.name}</p>
@@ -168,6 +170,7 @@ export default function POSPage() {
                       <span className="text-brand font-black text-[13px] shrink-0">৳{effectivePrice(p)}</span>
                     </div>
                     <p className="text-[10px] text-muted truncate mt-0.5">{p.items.map((it) => `${foodById(it.foodId)?.name || "item"} x${it.qty}`).join(" + ")}</p>
+                    </div>
                   </button>
                 );
               })}

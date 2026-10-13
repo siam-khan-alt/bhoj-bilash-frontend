@@ -150,6 +150,7 @@ export interface Package {
   price: number; // package dam
   offerPrice?: number; // offer thakle kom dam (0/undefined = no offer)
   offerNote?: string; // jemon "Eid Offer"
+  image?: string; // package cover photo (URL) — na thakle placeholder
   active: boolean;
   createdAt: string;
 }

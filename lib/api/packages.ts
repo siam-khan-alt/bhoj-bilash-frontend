@@ -33,7 +33,7 @@ export async function getPackages(activeOnly = false): Promise<Package[]> {
   return activeOnly ? list.filter((p) => p.active) : list;
 }
 
-export async function addPackage(data: { name: string; items: PackageItem[]; price: number; offerPrice?: number; offerNote?: string }): Promise<Package> {
+export async function addPackage(data: { name: string; items: PackageItem[]; price: number; offerPrice?: number; offerNote?: string; image?: string }): Promise<Package> {
   await delay();
   if (!data.name.trim()) throw new Error("err.pkgName");
   if (!data.items.length) throw new Error("err.pkgItem");
@@ -46,6 +46,7 @@ export async function addPackage(data: { name: string; items: PackageItem[]; pri
     price: Number(data.price),
     offerPrice: data.offerPrice ? Number(data.offerPrice) : undefined,
     offerNote: data.offerNote?.trim() || undefined,
+    image: data.image?.trim() || undefined,
     active: true,
     createdAt: new Date().toISOString(),
   };
@@ -53,7 +54,7 @@ export async function addPackage(data: { name: string; items: PackageItem[]; pri
   return item;
 }
 
-export async function updatePackage(id: string, patch: Partial<Pick<Package, "name" | "items" | "price" | "offerPrice" | "offerNote" | "active">>): Promise<Package> {
+export async function updatePackage(id: string, patch: Partial<Pick<Package, "name" | "items" | "price" | "offerPrice" | "offerNote" | "image" | "active">>): Promise<Package> {
   await delay();
   const list = getStored();
   const idx = list.findIndex((p) => p._id === id);

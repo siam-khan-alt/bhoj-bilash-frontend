@@ -49,7 +49,9 @@ export default function PublicMenuPage() {
             {packages.map((p) => {
               const hasOffer = p.offerPrice && Number(p.offerPrice) > 0;
               return (
-                <div key={p._id} className="bg-card-bg border border-card-border rounded-lg p-5">
+                <div key={p._id} className="bg-card-bg border border-card-border rounded-lg overflow-hidden">
+                  <img src={p.image || "/placeholder-food.png"} alt={p.name} className="w-full h-36 object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-food.png"; }} />
+                  <div className="p-5">
                   <div className="flex items-center gap-2 mb-1">
                     <PkgIcon className="w-4 h-4 text-brand" />
                     <p className="font-black flex-1">{p.name}</p>
@@ -62,6 +64,7 @@ export default function PublicMenuPage() {
                     {hasOffer && <span className="text-sm text-muted line-through mr-2">৳{p.price}</span>}
                     <span className="text-brand text-xl">৳{effectivePrice(p)}</span>
                   </p>
+                  </div>
                 </div>
               );
             })}
