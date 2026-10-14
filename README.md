@@ -1,48 +1,47 @@
-# 🍕 BiteBox — Food Ordering System
+# 🍕 Bhoj Bilash — Restaurant OS (Next.js Frontend)
 
-Next.js 15 + TypeScript frontend with mock data and dummy payment. Migrated from React Vite. No backend required — all flows run via local mocks, pluggable for future payment providers.
+Next.js 15 (App Router) + TypeScript staff-only restaurant system — POS billing, menu/packages, khata (staff/attendance/expense/salary), settings, public home/menu. **Mock-first:** no backend required, all flows run on `lib/mocks/*` + `localStorage`; backend plugs in via the `lib/api/*` adapter (Django DRF contract — see repo-root `LEARNING_MODULES.md` + `database.md`).
 
-**Live Demo:** [https://bitebox-ashy.vercel.app/]
+**Live Demo:** https://bhoj-bilash.vercel.app/ — **Repo:** https://github.com/siam-khan-alt/bhoj-bilash-frontend
 
 ---
 
 ## 📋 Overview
 
-BiteBox is a food delivery platform where customers can browse a dynamic menu, add items to cart, and checkout via dummy payment. Admins manage food inventory and orders. This branch (`nextjs-migration`) is a full rewrite to Next.js App Router with TypeScript, with PayHere removed.
+Single-restaurant operating system for dokan staff (not a customer delivery app):
+
+- **Public:** home (hero, offers, bestsellers, hours, reviews), full menu — no login needed
+- **Staff (login required):** POS walk-in billing + phone-based customer history, orders + status flow
+- **Admin:** foods/packages CRUD, khata (staff, attendance, expenses, salary/hisab), settings (config, hours, options, reviews)
+- **Roles:** `admin` (full) / `cashier` (POS + orders + khata entry; no foods/packages/settings writes). No public register — staff-only system.
 
 ---
 
 ## ✨ Features
 
-### Customer
-- Register and Login (mock auth, localStorage)
-- Browse food with search, category filter (`?category=`), price sorting
-- Add to cart (Context + localStorage)
-- Checkout with **dummy payment** (paid instantly) or COD (pending)
-- Order confirmation and My Orders history
+### Public
+- Home: HeroSlider, OfferBanner (package `offerPrice`), CategoryShowcase, BestSellers, PopularDrinks, OpeningHours badge, Reviews, Gallery, VisitUs
+- `/menu` — search, category filter (`?category=`), price sort, available-only
+- Bengali/English toggle, dark/light theme, toasts, custom UI
+
+### Staff (`/admin/pos`, `/admin/orders`)
+- Walk-in POS bill: foods + package lines, phone number, `dine_in/parcel/both`, discount, cash/card → bill receipt
+- Orders list, `placed → preparing → delivered / cancelled` status flow (admin), customer history modal by phone (totals: paid-only)
 
 ### Admin
-- Role-based access (admin/customer)
 - Dashboard stats: totalOrders, totalRevenue (paid only), totalFoods
-- Add, edit, delete foods (CategorySelector with free-text)
-- View all orders, update orderStatus, view customer details modal
-
-### General
-- Responsive, Dark/Light theme, Toasts, custom UI (no browser defaults)
+- Foods/packages CRUD + image preview + `available`/`active` toggle
+- Khata: staff CRUD, attendance mark (same-day re-mark = update) + monthly view, expenses CRUD, salary pay, hisab summary (sales − expenses − salaryPaid, per-staff due)
+- Settings: restaurant config, 7-day hours, option lists (locked values guarded), reviews
 
 ---
 
 ## 🛠️ Tech Stack
 
-**Frontend (this repo)**
-- Next.js 15 (App Router) + TypeScript (strict)
-- Tailwind CSS v4 (`app/globals.css` @theme vars)
-- Lucide React, React Hot Toast
-- Mock data + API adapter: `lib/mocks/` + `lib/api/` + `lib/payment/dummy.ts`
-
-**Backend (not required for this branch)**
-- Previously Node/Express + Mongo + PayHere — removed in this branch. See `main` branch for MERN version.
-- Future backend can be plugged via `lib/api` adapter.
+- Next.js 15 (App Router) + TypeScript (strict) + Tailwind CSS v4 (`app/globals.css` @theme)
+- `lucide-react`, `react-hot-toast`, `qrcode.react`
+- Mock data + API adapter: `lib/mocks/*` + `lib/api/*` (+ `lib/payment/dummy.ts`, `lib/restaurant.ts`, `lib/salary.ts`)
+- Future backend: Django DRF + PostgreSQL — swap inside `lib/api/*` only, signatures stay same
 
 ---
 
@@ -51,105 +50,106 @@ BiteBox is a food delivery platform where customers can browse a dynamic menu, a
 ```
 frontend/
 ├── app/
-│   ├── layout.tsx           // Theme/Auth/Cart providers + Navbar/Footer
-│   ├── page.tsx             // Home (Hero, StatsBar, CategoryShowcase...)
-│   ├── menu/page.tsx
-│   ├── cart/page.tsx
-│   ├── checkout/page.tsx    // dummy payment only
-│   ├── my-orders/page.tsx
-│   ├── order-confirmation/[orderId]/page.tsx
-│   ├── login/page.tsx
-│   ├── register/page.tsx
+│   ├── page.tsx                 // Home
+│   ├── menu/page.tsx            // Public menu
+│   ├── login/page.tsx           // Staff login (no register page)
 │   └── admin/
-│       ├── layout.tsx       // guard admin role
-│       ├── page.tsx         // AdminHome stats
+│       ├── layout.tsx           // staff guard + sidebar
+│       ├── page.tsx             // Dashboard
+│       ├── pos/page.tsx         // Walk-in POS + BillReceipt
+│       ├── orders/page.tsx
 │       ├── foods/page.tsx
-│       └── orders/page.tsx
+│       ├── packages/page.tsx
+│       ├── staff/page.tsx + staff/[id]/page.tsx
+│       ├── attendance/page.tsx
+│       ├── expenses/page.tsx
+│       ├── hisab/page.tsx
+│       └── settings/page.tsx
 ├── components/
-│   ├── layout/ (Navbar, Footer)
-│   ├── common/ (Button, Input, CustomSelect, Modal, SectionHeader, Toast)
-│   ├── home/ (Hero, CategoryShowcase, FeaturedFoods...)
-│   ├── food/ (FoodCard)
-│   ├── cart/ (CartItem, CartSummary)
-│   └── admin/ (AdminSidebar, CategorySelector, CustomerDetailsModal)
-├── context/ (ThemeContext, AuthContext, CartContext)
+│   ├── layout/ (AppChrome, Navbar, Footer)
+│   ├── common/ (Button, Input, CustomSelect, Modal, SectionHeader, Toast, LangToggle)
+│   ├── home/ (HeroSlider, OfferBanner, CategoryShowcase, BestSellers, PopularDrinks, OpeningHours, Reviews, Gallery, VisitUs)
+│   ├── admin/ (CategorySelector, CustomerDetailsModal, OptionListEditor)
+│   ├── dashboard/ (DashboardShell)
+│   └── pos/ (BillReceipt)
+├── context/ (AuthContext, ThemeContext, LanguageContext, RestaurantContext)
 ├── lib/
-│   ├── mocks/ (foods, users, orders)
-│   ├── api/ (food, auth, orders)
-│   └── payment/dummy.ts
-├── types/index.ts
-├── public/ (logo, hero-*.png, stat-*.png, placeholder-food.png)
-├── next.config.ts
-└── tsconfig.json
+│   ├── api/ (auth, food, packages, orders, staff, attendance, expenses, salary, options, reviews)
+│   ├── mocks/ (users, foods, packages, orders, staff, reviews)
+│   ├── payment/dummy.ts
+│   ├── restaurant.ts  (config/hours)
+│   └── salary.ts      (earned = present×1 + half×0.5, per-day = salary÷30)
+├── types/index.ts     // contract: _id, createdAt, camelCase — backend must match these names
+└── public/ (logo, hero-*, stat-*, placeholder-food.png)
 ```
 
 ---
 
 ## ⚙️ Installation & Setup
 
-### Prerequisites
-- Node.js v18+
+Prerequisites: Node.js v18+
 
-### Run
 ```bash
-git clone https://github.com/siam-khan-alt/food-ordering-frontend.git
-cd food-ordering-frontend
-git checkout nextjs-migration
+git clone https://github.com/siam-khan-alt/bhoj-bilash-frontend.git
+cd bhoj-bilash-frontend
 npm install
 npm run dev
 ```
 
-App at `http://localhost:3000`
+App at `http://localhost:3000`. Build: `npm run build`.
 
-No `.env` required for mock mode. Optional:
+`.env` — mock mode needs nothing. Optional:
+
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-Build:
-```bash
-npm run build
+# Future real backend (Django):
+# NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
 ```
 
 ---
 
-## 🔑 Demo Credentials
+## 🔑 Demo Credentials (login-only, no register)
 
 | Role | Email | Password |
 |------|-------|----------|
-| Customer | siam@test.com | 123456 |
 | Admin | admin@test.com | admin123 |
+| Cashier | cashier@test.com | cashier123 |
 
-Quick-login buttons on Login page.
+Quick-login buttons on `/login`. Cashier is blocked from foods/packages/settings writes.
 
 ---
 
-## 🔌 Mock API (no backend)
+## 🔌 API Adapter (mock today → Django tomorrow)
 
-| Method | Mock Function | Access | Description |
-|--------|---------------|--------|-------------|
-| `getFoods()` | `lib/api/food` | Public | Get all foods |
-| `addFood()` / `updateFood()` / `deleteFood()` | `lib/api/food` | Admin | CRUD foods |
-| `login()` / `register()` | `lib/api/auth` | Public | Mock auth |
-| `createOrder()` | `lib/api/orders` | Auth | Create order (price recomputed server-side mock) |
-| `getMyOrders()` | `lib/api/orders` | Auth | Current user orders |
-| `getOrderById()` | `lib/api/orders` | Auth | Single order (owner/admin) |
-| `getAllOrders()` | `lib/api/orders` | Admin | All orders |
-| `getCustomerOrders()` | `lib/api/orders` | Admin | Customer aggregates |
-| `updateOrderStatus()` | `lib/api/orders` | Admin | Update status |
-| `processDummyPayment()` | `lib/payment/dummy` | — | Dummy/COD |
+Same function signature, ভেতরে `fetch` বসবে। Real endpoint contract (`LEARNING_MODULES.md` cheat sheet):
 
-All data persisted in `localStorage` (`mock_foods`, `mock_orders`, `mock_users`, `cart`, `user`, `theme`).
+| Mock function | Real endpoint | Access | Shape |
+|---|---|---|---|
+| `login({email,password})` | `POST /api/auth/login` | public | `{ user, token }` |
+| `getFoods()` | `GET /api/foods` | public | bare array `[Food]` |
+| `add/update/deleteFood` | `POST/PATCH/DELETE /api/foods…` | admin | `Food` / `204` |
+| `getPackages(activeOnly)` | `GET /api/packages?active=1` | public | bare array `[Package]` |
+| `add/update/deletePackage` | `POST/PATCH/DELETE /api/packages…` | admin | `Package` / `204` |
+| `createOrder()` | `POST /api/orders` | staff | `{ order }` |
+| `getAllOrders()` | `GET /api/orders` | staff | bare array (adapter unwraps pagination) |
+| `getOrderById()` | `GET /api/orders/:id` | staff | bare order object |
+| `getCustomerOrders(phone)` | `GET /api/orders/by-phone?phone=` | staff | `{ customer, totalOrders, totalSpent, orders }` |
+| `updateOrderStatus()` | `PATCH /api/orders/:id/status` | admin | `Order` |
+| staff/attendance/expenses/salary | `/api/staff`, `/api/attendance`, `/api/expenses`, `/api/salary…` | staff | bare arrays / objects |
+| hisab summary | `GET /api/hisab/summary?month=` | staff | `{ sales, expenses, salaryPaid, cash, dueByStaff[] }` |
+| config/hours/options/reviews | `/api/config`, `/api/options?key=`, `/api/reviews` | public GET / admin write | objects / arrays |
 
-To plug real backend, replace `lib/api/*` with fetch calls and `lib/payment/dummy.ts` with Stripe/SSLCommerz.
+Field rules: `_id` string, money = JSON number, `createdAt` ISO, `category`/`job` plain strings, errors `{ message }`. Enums lowercase (`admin|cashier`, `placed|preparing|delivered|cancelled`, `pending|paid|failed`, `dine_in|parcel|both`).
+
+All mock data persists in `localStorage` (`mock_*`, `cart`, `user`, `token`, `theme`). Price is recomputed from mock foods on order create (server-trust pattern).
 
 ---
 
 ## 🔐 Notes
 
-- Auth mocked via localStorage, no JWT — for demo only.
-- Price recomputed from mock foods on order create (prevents client tampering pattern).
-- `?category=` query param on `/menu` is now correctly handled (fixed bug from Vite version).
+- Auth is mocked localStorage token (`mock-jwt-…`) — backend will return real JWT as `token`.
+- No register page by design (staff-only); users are seeded.
+- Package order lines are single pseudo-lines (`category: "Package"`), not split into items.
 
 ---
 
