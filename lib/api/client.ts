@@ -16,8 +16,9 @@ export function getToken(): string | null {
 function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
   const h: Record<string, string> = { "Content-Type": "application/json", ...extra };
   const t = getToken();
+  // mock-jwt token real backend e pathale SimpleJWT decode fail kore PUBLIC endpoint eo 401 dey —
+  // tai mock token kokhono header e jabe na (mock mode e apiFetch use-i hoy na).
   if (t && !t.startsWith("mock-jwt-")) h["Authorization"] = `Bearer ${t}`;
-  else if (t) h["Authorization"] = `Bearer ${t}`;
   return h;
 }
 

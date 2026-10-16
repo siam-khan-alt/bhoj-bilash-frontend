@@ -26,7 +26,6 @@ export default function Footer() {
               <Link href="/" className="text-sm text-muted hover:text-brand transition">{t("nav.home")}</Link>
               <Link href="/menu" className="text-sm text-muted hover:text-brand transition">{t("nav.menu")}</Link>
               <Link href="/login" className="text-sm text-muted hover:text-brand transition">{t("nav.login")}</Link>
-              <Link href="/register" className="text-sm text-muted hover:text-brand transition">{t("foot.register")}</Link>
             </div>
           </div>
 
