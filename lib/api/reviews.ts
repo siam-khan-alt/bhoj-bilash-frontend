@@ -1,5 +1,6 @@
 import type { Review } from "@/types";
 import { mockReviews } from "@/lib/mocks/reviews";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const STORAGE_KEY = "mock_reviews";
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
@@ -23,6 +24,7 @@ function setStoredReviews(reviews: Review[]) {
 }
 
 export async function getReviews(): Promise<Review[]> {
+  if (isRealApi()) return unwrapList<Review>(await apiFetch<unknown>("/reviews"));
   await delay();
   return getStoredReviews().sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -30,6 +32,9 @@ export async function getReviews(): Promise<Review[]> {
 }
 
 export async function addReview(data: { name: string; rating: number; text: string }): Promise<Review> {
+  if (isRealApi()) {
+    return apiFetch<Review>("/reviews", { method: "POST", body: JSON.stringify(data) });
+  }
   await delay();
   const name = data.name.trim();
   const text = data.text.trim();

@@ -1,4 +1,5 @@
 import type { Attendance, AttendanceStatus } from "@/types";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const KEY = "mock_attendance";
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
@@ -23,11 +24,13 @@ function setStored(list: Attendance[]) {
 }
 
 export async function getAttendanceByDate(date: string): Promise<Attendance[]> {
+  if (isRealApi()) return unwrapList<Attendance>(await apiFetch<unknown>(`/attendance?date=${date}`));
   await delay();
   return getStored().filter((a) => a.date === date);
 }
 
 export async function getAttendanceByMonth(month: string): Promise<Attendance[]> {
+  if (isRealApi()) return unwrapList<Attendance>(await apiFetch<unknown>(`/attendance?month=${month}`));
   await delay();
   return getStored().filter((a) => a.date.startsWith(month));
 }
@@ -38,6 +41,12 @@ export async function markAttendance(
   status: AttendanceStatus,
   opts?: { inTime?: string; outTime?: string; note?: string }
 ): Promise<Attendance> {
+  if (isRealApi()) {
+    return apiFetch<Attendance>("/attendance/mark", {
+      method: "POST",
+      body: JSON.stringify({ staffId, date, status, ...opts }),
+    });
+  }
   await delay();
   const list = getStored();
   const idx = list.findIndex((a) => a.staffId === staffId && a.date === date);
@@ -71,6 +80,12 @@ export async function updateAttendanceTimes(
   date: string,
   patch: { inTime?: string; outTime?: string; note?: string; status?: AttendanceStatus }
 ): Promise<Attendance> {
+  if (isRealApi()) {
+    return apiFetch<Attendance>("/attendance/times", {
+      method: "POST",
+      body: JSON.stringify({ staffId, date, ...patch }),
+    });
+  }
   await delay();
   const list = getStored();
   const idx = list.findIndex((a) => a.staffId === staffId && a.date === date);

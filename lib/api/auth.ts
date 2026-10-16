@@ -1,5 +1,6 @@
 import type { User } from "@/types";
 import { mockUsers } from "@/lib/mocks/users";
+import { apiFetch, isRealApi } from "./client";
 
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 
@@ -25,6 +26,12 @@ function getStoredUsers(): (User & { password: string })[] {
 }
 
 export async function login(data: { email: string; password: string }): Promise<{ user: User; token: string }> {
+  if (isRealApi()) {
+    return apiFetch<{ user: User; token: string }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
   await delay();
   const users = getStoredUsers();
   const found = users.find((u) => u.email === data.email && u.password === data.password);

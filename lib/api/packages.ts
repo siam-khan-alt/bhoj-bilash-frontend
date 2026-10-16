@@ -1,5 +1,6 @@
 import type { Package, PackageItem } from "@/types";
 import { mockPackages } from "@/lib/mocks/packages";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const KEY = "mock_packages";
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
@@ -28,12 +29,19 @@ export function effectivePrice(p: Package) {
 }
 
 export async function getPackages(activeOnly = false): Promise<Package[]> {
+  if (isRealApi()) {
+    const data = await apiFetch<unknown>(`/packages${activeOnly ? "?active=1" : ""}`);
+    return unwrapList<Package>(data);
+  }
   await delay();
   const list = getStored();
   return activeOnly ? list.filter((p) => p.active) : list;
 }
 
 export async function addPackage(data: { name: string; items: PackageItem[]; price: number; offerPrice?: number; offerNote?: string; image?: string }): Promise<Package> {
+  if (isRealApi()) {
+    return apiFetch<Package>("/packages", { method: "POST", body: JSON.stringify(data) });
+  }
   await delay();
   if (!data.name.trim()) throw new Error("err.pkgName");
   if (!data.items.length) throw new Error("err.pkgItem");
@@ -55,6 +63,9 @@ export async function addPackage(data: { name: string; items: PackageItem[]; pri
 }
 
 export async function updatePackage(id: string, patch: Partial<Pick<Package, "name" | "items" | "price" | "offerPrice" | "offerNote" | "image" | "active">>): Promise<Package> {
+  if (isRealApi()) {
+    return apiFetch<Package>(`/packages/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+  }
   await delay();
   const list = getStored();
   const idx = list.findIndex((p) => p._id === id);
@@ -65,6 +76,10 @@ export async function updatePackage(id: string, patch: Partial<Pick<Package, "na
 }
 
 export async function deletePackage(id: string): Promise<void> {
+  if (isRealApi()) {
+    await apiFetch(`/packages/${id}`, { method: "DELETE" });
+    return;
+  }
   await delay();
   setStored(getStored().filter((p) => p._id !== id));
 }

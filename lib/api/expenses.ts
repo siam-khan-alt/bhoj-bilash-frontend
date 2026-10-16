@@ -1,5 +1,6 @@
 import type { Expense, ExpenseCategory } from "@/types";
 import { mockExpenses } from "@/lib/mocks/staff";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const KEY = "mock_expenses";
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
@@ -23,11 +24,15 @@ function setStored(list: Expense[]) {
 }
 
 export async function getExpenses(): Promise<Expense[]> {
+  if (isRealApi()) return unwrapList<Expense>(await apiFetch<unknown>("/expenses"));
   await delay();
   return [...getStored()].reverse();
 }
 
 export async function addExpense(data: { date: string; category: ExpenseCategory; note: string; amount: number; by: string }): Promise<Expense> {
+  if (isRealApi()) {
+    return apiFetch<Expense>("/expenses", { method: "POST", body: JSON.stringify(data) });
+  }
   await delay();
   if (!data.amount || Number(data.amount) <= 0) throw new Error("err.amountInvalid");
   const list = getStored();
@@ -45,11 +50,18 @@ export async function addExpense(data: { date: string; category: ExpenseCategory
 }
 
 export async function deleteExpense(id: string): Promise<void> {
+  if (isRealApi()) {
+    await apiFetch(`/expenses/${id}`, { method: "DELETE" });
+    return;
+  }
   await delay();
   setStored(getStored().filter((e) => e._id !== id));
 }
 
 export async function updateExpense(id: string, patch: Partial<Pick<Expense, "date" | "category" | "note" | "amount">>): Promise<Expense> {
+  if (isRealApi()) {
+    return apiFetch<Expense>(`/expenses/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+  }
   await delay();
   const list = getStored();
   const idx = list.findIndex((e) => e._id === id);

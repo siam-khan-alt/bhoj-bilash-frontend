@@ -1,4 +1,5 @@
 import type { SalaryPayment } from "@/types";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const KEY = "mock_salary";
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
@@ -21,6 +22,9 @@ function setStored(list: SalaryPayment[]) {
 }
 
 export async function getSalaryPayments(month?: string): Promise<SalaryPayment[]> {
+  if (isRealApi()) {
+    return unwrapList<SalaryPayment>(await apiFetch<unknown>(`/salary${month ? `?month=${month}` : ""}`));
+  }
   await delay();
   const list = getStored();
   if (month) return list.filter((p) => p.month === month).reverse();
@@ -28,6 +32,9 @@ export async function getSalaryPayments(month?: string): Promise<SalaryPayment[]
 }
 
 export async function paySalary(data: { staffId: string; month: string; amount: number; note: string }): Promise<SalaryPayment> {
+  if (isRealApi()) {
+    return apiFetch<SalaryPayment>("/salary/pay", { method: "POST", body: JSON.stringify(data) });
+  }
   await delay();
   if (!data.amount || Number(data.amount) <= 0) throw new Error("err.amountInvalid");
   if (!data.month) throw new Error("err.monthRequired");

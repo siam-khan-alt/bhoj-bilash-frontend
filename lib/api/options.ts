@@ -1,5 +1,6 @@
 import type { Lang } from "@/lib/i18n/dict";
 import type { OptionItem, OptionListKey } from "@/types";
+import { apiFetch, isRealApi } from "./client";
 
 const STORAGE_KEY = "mock_options";
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
@@ -78,6 +79,9 @@ function setStored(list: OptionItem[]) {
 const bySort = (a: OptionItem, b: OptionItem) => a.sort - b.sort;
 
 export async function getOptions(key: OptionListKey, activeOnly = false): Promise<OptionItem[]> {
+  if (isRealApi()) {
+    return apiFetch<OptionItem[]>(`/options?key=${key}`);
+  }
   await delay();
   const rows = getStored().filter((o) => o.key === key);
   return (activeOnly ? rows.filter((o) => o.active) : rows).sort(bySort);
@@ -87,6 +91,12 @@ export async function addOption(
   key: OptionListKey,
   data: { value: string; label_bn?: string; label_en?: string }
 ): Promise<OptionItem> {
+  if (isRealApi()) {
+    return apiFetch<OptionItem>("/options", {
+      method: "POST",
+      body: JSON.stringify({ key, ...data }),
+    });
+  }
   await delay();
   const value = data.value.trim();
   if (!value) throw new Error("opt.empty");
@@ -113,6 +123,9 @@ export async function updateOption(
   id: string,
   patch: Partial<Pick<OptionItem, "value" | "label_bn" | "label_en" | "sort" | "active">>
 ): Promise<OptionItem> {
+  if (isRealApi()) {
+    return apiFetch<OptionItem>(`/options/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+  }
   await delay();
   const list = getStored();
   const idx = list.findIndex((o) => o._id === id);
@@ -138,6 +151,10 @@ export async function updateOption(
 }
 
 export async function deleteOption(id: string): Promise<void> {
+  if (isRealApi()) {
+    await apiFetch(`/options/${id}`, { method: "DELETE" });
+    return;
+  }
   await delay();
   setStored(getStored().filter((o) => o._id !== id));
 }

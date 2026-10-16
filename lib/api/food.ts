@@ -1,5 +1,6 @@
 import type { Food } from "@/types";
 import { mockFoods } from "@/lib/mocks/foods";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const STORAGE_KEY = "mock_foods";
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
@@ -52,11 +53,18 @@ function setStoredFoods(foods: Food[]) {
 }
 
 export async function getFoods(): Promise<Food[]> {
+  if (isRealApi()) {
+    const data = await apiFetch<unknown>("/foods");
+    return unwrapList<Food>(data);
+  }
   await delay();
   return getStoredFoods();
 }
 
 export async function addFood(data: { name: string; category: string; price: string | number; image: string }): Promise<Food> {
+  if (isRealApi()) {
+    return apiFetch<Food>("/foods", { method: "POST", body: JSON.stringify({ ...data, price: Number(data.price) }) });
+  }
   await delay();
   const foods = getStoredFoods();
   const newFood: Food = {
@@ -74,6 +82,10 @@ export async function addFood(data: { name: string; category: string; price: str
 }
 
 export async function updateFood(id: string, data: { name?: string; category?: string; price?: string | number; image?: string; available?: boolean }): Promise<Food> {
+  if (isRealApi()) {
+    const body = { ...data, ...(data.price !== undefined ? { price: Number(data.price) } : {}) };
+    return apiFetch<Food>(`/foods/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+  }
   await delay();
   const foods = getStoredFoods();
   const idx = foods.findIndex((f) => f._id === id);
@@ -92,6 +104,10 @@ export async function updateFood(id: string, data: { name?: string; category?: s
 }
 
 export async function deleteFood(id: string): Promise<void> {
+  if (isRealApi()) {
+    await apiFetch(`/foods/${id}`, { method: "DELETE" });
+    return;
+  }
   await delay();
   const foods = getStoredFoods();
   const filtered = foods.filter((f) => f._id !== id);

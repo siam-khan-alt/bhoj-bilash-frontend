@@ -1,5 +1,6 @@
 import type { StaffMember } from "@/types";
 import { mockStaff } from "@/lib/mocks/staff";
+import { apiFetch, isRealApi, unwrapList } from "./client";
 
 const KEY = "mock_staff";
 const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
@@ -23,11 +24,15 @@ function setStored(list: StaffMember[]) {
 }
 
 export async function getStaff(): Promise<StaffMember[]> {
+  if (isRealApi()) return unwrapList<StaffMember>(await apiFetch<unknown>("/staff"));
   await delay();
   return getStored();
 }
 
 export async function addStaff(data: { name: string; job: string; phone: string; monthlySalary: number }): Promise<StaffMember> {
+  if (isRealApi()) {
+    return apiFetch<StaffMember>("/staff", { method: "POST", body: JSON.stringify(data) });
+  }
   await delay();
   if (!data.name.trim()) throw new Error("err.nameRequired");
   if (!data.monthlySalary || Number(data.monthlySalary) <= 0) throw new Error("err.salaryInvalid");
@@ -46,6 +51,9 @@ export async function addStaff(data: { name: string; job: string; phone: string;
 }
 
 export async function updateStaff(id: string, patch: Partial<Pick<StaffMember, "name" | "job" | "phone" | "monthlySalary" | "active">>): Promise<StaffMember> {
+  if (isRealApi()) {
+    return apiFetch<StaffMember>(`/staff/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+  }
   await delay();
   const list = getStored();
   const idx = list.findIndex((s) => s._id === id);
@@ -56,6 +64,10 @@ export async function updateStaff(id: string, patch: Partial<Pick<StaffMember, "
 }
 
 export async function deleteStaff(id: string): Promise<void> {
+  if (isRealApi()) {
+    await apiFetch(`/staff/${id}`, { method: "DELETE" }); // default archive
+    return;
+  }
   await delay();
   setStored(getStored().filter((s) => s._id !== id));
 }

@@ -8,6 +8,7 @@ import { getExpenses } from "@/lib/api/expenses";
 import { getSalaryPayments } from "@/lib/api/salary";
 import { getStaff } from "@/lib/api/staff";
 import { getAttendanceByMonth } from "@/lib/api/attendance";
+import { getHisabSummary, type HisabSummary } from "@/lib/api/hisab";
 import { monthPayable } from "@/lib/salary";
 import type { Order, Expense, SalaryPayment, StaffMember } from "@/types";
 import Link from "next/link";
@@ -43,6 +44,11 @@ export default function HisabPage() {
   }, []);
 
   const [att, setAtt] = useState<import("@/types").Attendance[]>([]);
+  const [summary, setSummary] = useState<HisabSummary | null>(null);
+
+  useEffect(() => {
+    getHisabSummary(thisMonth()).then((s) => s && setSummary(s)).catch(() => {});
+  }, []);
 
   if (user?.role !== "admin") return <p className="text-muted font-bold">{t("c.noAccess")}</p>;
 
@@ -64,11 +70,22 @@ export default function HisabPage() {
   const monthDue = monthPayableTotal - monthSalPaid;
   const monthProfit = monthSale - monthExp - monthSalPaid;
 
+  // Real backend mode: server-computed summary wins (1 call, DB aggregates).
+  const vTodaySale = summary?.today.sales ?? todaySale;
+  const vTodayCash = summary?.today.cash ?? todayCash;
+  const vTodayExp = summary?.today.expenses ?? todayExp;
+  const vTodaySal = summary?.today.salaryPaid ?? todaySal;
+  const vMonthSale = summary?.sales ?? monthSale;
+  const vMonthExp = summary?.expenses ?? monthExp;
+  const vMonthSalPaid = summary?.salaryPaid ?? monthSalPaid;
+  const vMonthProfit = summary ? summary.cash : monthProfit;
+  const vMonthDue = summary?.dueTotal ?? monthDue;
+
   const cards = [
-    { label: t("hi.sale"), value: `৳${todaySale}`, sub: t("hi.saleSub", { exp: todayExp, sal: todaySal, extra: todayChar > 0 ? t("hi.charPart", { amt: todayChar }) : "" }) },
-    { label: t("hi.cash"), value: `৳${todayCash}`, sub: todayCash >= 0 ? t("hi.cashOk") : t("hi.cashBad"), hot: todayCash < 0 },
-    { label: t("hi.monthSale"), value: `৳${monthSale}`, sub: t("hi.monthSaleSub", { exp: monthExp, sal: monthSalPaid, extra: monthChar > 0 ? t("hi.charPart", { amt: monthChar }) : "" }) },
-    { label: t("hi.profit"), value: `৳${monthProfit}`, sub: t("hi.profitSub", { due: monthDue }), hot: monthProfit < 0 },
+    { label: t("hi.sale"), value: `৳${vTodaySale}`, sub: t("hi.saleSub", { exp: vTodayExp, sal: vTodaySal, extra: todayChar > 0 ? t("hi.charPart", { amt: todayChar }) : "" }) },
+    { label: t("hi.cash"), value: `৳${vTodayCash}`, sub: vTodayCash >= 0 ? t("hi.cashOk") : t("hi.cashBad"), hot: vTodayCash < 0 },
+    { label: t("hi.monthSale"), value: `৳${vMonthSale}`, sub: t("hi.monthSaleSub", { exp: vMonthExp, sal: vMonthSalPaid, extra: monthChar > 0 ? t("hi.charPart", { amt: monthChar }) : "" }) },
+    { label: t("hi.profit"), value: `৳${vMonthProfit}`, sub: t("hi.profitSub", { due: vMonthDue }), hot: vMonthProfit < 0 },
   ];
 
   return (
@@ -89,7 +106,14 @@ export default function HisabPage() {
       <div className="bg-card-bg border border-card-border rounded-lg p-5 mb-4">
         <h3 className="font-black text-sm mb-3">{t("hi.staffDue", { m })}</h3>
         <div className="space-y-2 text-sm">
-          {staff.map((s) => {
+          {summary
+            ? summary.dueByStaff.map((s) => (
+              <div key={s.staffId} className="flex justify-between">
+                <span>{s.name}</span>
+                <span className="text-muted">{t("hi.paoa", { a: s.payable })} • {t("hi.deya", { b: s.paid })} • <b className={s.due > 0 ? "text-red-500" : "text-accent"}>{t("hi.baki", { c: s.due })}</b></span>
+              </div>
+            ))
+            : staff.map((s) => {
             const pay = monthPayable(s, att);
             const paid = salary.filter((p) => p.staffId === s._id).reduce((x, p) => x + p.amount, 0);
             return (
@@ -99,7 +123,7 @@ export default function HisabPage() {
               </div>
             );
           })}
-          {staff.length === 0 && <p className="text-xs text-muted">{t("hi.noStaff")}</p>}
+          {(summary ? summary.dueByStaff.length === 0 : staff.length === 0) && <p className="text-xs text-muted">{t("hi.noStaff")}</p>}
         </div>
       </div>
 
