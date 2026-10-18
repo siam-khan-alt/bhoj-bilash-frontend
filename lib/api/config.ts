@@ -1,13 +1,12 @@
 import type { RestaurantConfig } from "@/types";
-import { apiFetch, isRealApi } from "./client";
+import { apiFetch } from "./client";
 
 export interface RemoteConfig extends RestaurantConfig {
   isOpenNow?: boolean;
 }
 
-/** Real backend: GET /api/config (public). Mock mode-e null. */
-export async function getRemoteConfig(): Promise<RemoteConfig | null> {
-  if (!isRealApi()) return null;
+/** GET /api/config (public) — dokan info + 7-din hours. */
+export async function getRemoteConfig(): Promise<RemoteConfig> {
   return apiFetch<RemoteConfig>("/config");
 }
 

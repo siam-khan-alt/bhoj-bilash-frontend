@@ -2,10 +2,11 @@ import type { DayHours, RestaurantConfig } from "@/types";
 
 /**
  * SINGLE SMALL HOTEL — no super admin, no online ordering, no table/QR.
- * 1 copy = 1 dokan. Name/address/phone change kore deploy.
+ * 1 copy = 1 dokan. Real shop info/hours backend /api/config theke ase
+ * (RestaurantContext); nicher gulo first-paint / fetch-fail default.
  */
 
-/** ৭ দিনের ডিফল্ট সময়সূচি — index = JS getDay() (0 = রবিবার)। মালিক এখানে বদলে দিলেই home-এ আপডেট। */
+/** ৭ দিনের ডিফল্ট সময়সূচি — index = JS getDay() (0 = রবিবার)। */
 export const DEFAULT_HOURS: DayHours[] = [
   { open: "09:00", close: "22:00" }, // রবি
   { open: "09:00", close: "22:00" }, // সোম
@@ -24,41 +25,6 @@ export const RESTAURANT_DEFAULT: RestaurantConfig = {
   phone: "+880 1700-000001",
   hours: DEFAULT_HOURS,
 };
-
-const STORAGE_KEY = "restaurant_config";
-
-// Purono name (Hotel Ruposhi / BiteBox) thakle auto migrate → Bhoj Bilash
-const LEGACY_NAMES = ["Hotel Ruposhi", "BiteBox", "BiteBox OS"];
-
-export function getRestaurantConfig(): RestaurantConfig {
-  if (typeof window === "undefined") return { ...RESTAURANT_DEFAULT };
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved) as RestaurantConfig;
-      if (parsed.name && LEGACY_NAMES.includes(parsed.name)) {
-        const migrated = { ...RESTAURANT_DEFAULT, ...parsed, name: RESTAURANT_DEFAULT.name, slug: RESTAURANT_DEFAULT.slug, logo: "/logo.png" };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-        return migrated;
-      }
-      return { ...RESTAURANT_DEFAULT, ...parsed, logo: "/logo.png" };
-    } catch {
-      return { ...RESTAURANT_DEFAULT };
-    }
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(RESTAURANT_DEFAULT));
-  return { ...RESTAURANT_DEFAULT };
-}
-
-export function setRestaurantConfig(config: RestaurantConfig) {
-  if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-}
-
-export function updateRestaurantConfig(patch: Partial<RestaurantConfig>): RestaurantConfig {
-  const next = { ...getRestaurantConfig(), ...patch };
-  setRestaurantConfig(next);
-  return next;
-}
 
 /** "HH:MM" → minute-of-day. */
 function toMin(hhmm: string): number {

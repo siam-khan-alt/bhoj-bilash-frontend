@@ -1,6 +1,6 @@
 # 🍕 Bhoj Bilash — Restaurant OS (Next.js Frontend)
 
-Next.js 15 (App Router) + TypeScript staff-only restaurant system — POS billing, menu/packages, khata (staff/attendance/expense/salary), settings, public home/menu. **Mock-first:** no backend required, all flows run on `lib/mocks/*` + `localStorage`; backend plugs in via the `lib/api/*` adapter (Django DRF contract — see repo-root `LEARNING_MODULES.md` + `database.md`).
+Next.js 15 (App Router) + TypeScript staff-only restaurant system — POS billing, menu/packages, khata (staff/attendance/expense/salary), settings, public home/menu. **Backend-connected:** all data comes from the Django DRF API via `lib/api/*` (thin fetch adapter; `NEXT_PUBLIC_API_URL` required) — contract in repo-root `LEARNING_MODULES.md` + `database.md`.
 
 **Live Demo:** https://bhoj-bilash.vercel.app/ — **Repo:** https://github.com/siam-khan-alt/bhoj-bilash-frontend
 
@@ -32,7 +32,7 @@ Single-restaurant operating system for dokan staff (not a customer delivery app)
 - Dashboard stats: totalOrders, totalRevenue (paid only), totalFoods
 - Foods/packages CRUD + image preview + `available`/`active` toggle
 - Khata: staff CRUD, attendance mark (same-day re-mark = update) + monthly view, expenses CRUD, salary pay, hisab summary (sales − expenses − salaryPaid, per-staff due)
-- Settings: restaurant config, 7-day hours, option lists (locked values guarded), reviews
+- Settings: restaurant config (saved to DB via `/api/config`), 7-day hours, option lists (locked values guarded)
 
 ---
 
@@ -40,8 +40,8 @@ Single-restaurant operating system for dokan staff (not a customer delivery app)
 
 - Next.js 15 (App Router) + TypeScript (strict) + Tailwind CSS v4 (`app/globals.css` @theme)
 - `lucide-react`, `react-hot-toast`, `qrcode.react`
-- Mock data + API adapter: `lib/mocks/*` + `lib/api/*` (+ `lib/payment/dummy.ts`, `lib/restaurant.ts`, `lib/salary.ts`)
-- Future backend: Django DRF + PostgreSQL — swap inside `lib/api/*` only, signatures stay same
+- API layer: `lib/api/*` — `apiFetch` (Bearer + `{message}` errors) + `apiFetchAll` (follows pagination); `lib/restaurant.ts` (defaults), `lib/salary.ts` (earned math)
+- Backend: Django DRF + PostgreSQL (repo `/backend`) — contract kept in `types/index.ts`
 
 ---
 
@@ -74,12 +74,11 @@ frontend/
 │   └── pos/ (BillReceipt)
 ├── context/ (AuthContext, ThemeContext, LanguageContext, RestaurantContext)
 ├── lib/
-│   ├── api/ (auth, food, packages, orders, staff, attendance, expenses, salary, options, reviews)
-│   ├── mocks/ (users, foods, packages, orders, staff, reviews)
-│   ├── payment/dummy.ts
-│   ├── restaurant.ts  (config/hours)
+│   ├── api/ (client + auth, food, packages, orders, staff, attendance, expenses, salary, options, reviews, hisab, config)
+│   ├── restaurant.ts  (first-paint defaults; live config via /api/config)
 │   └── salary.ts      (earned = present×1 + half×0.5, per-day = salary÷30)
 ├── types/index.ts     // contract: _id, createdAt, camelCase — backend must match these names
+├── .env.local         // NEXT_PUBLIC_API_URL — backend connection (required)
 └── public/ (logo, hero-*, stat-*, placeholder-food.png)
 ```
 
@@ -98,13 +97,14 @@ npm run dev
 
 App at `http://localhost:3000`. Build: `npm run build`.
 
-`.env` — mock mode needs nothing. Optional:
+**Backend required** — start Django first (`backend/`, `runserver` on `:8000`), then `.env.local`:
 
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-# Future real backend (Django):
-# NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
 ```
+
+Prod (Vercel): `NEXT_PUBLIC_API_URL=https://your-api.onrender.com/api`. Missing URL → app shows a clear error instead of data.
 
 ---
 
@@ -119,11 +119,11 @@ Quick-login buttons on `/login`. Cashier is blocked from foods/packages/settings
 
 ---
 
-## 🔌 API Adapter (mock today → Django tomorrow)
+## 🔌 API Layer (Django DRF — live)
 
-Same function signature, ভেতরে `fetch` বসবে। Real endpoint contract (`LEARNING_MODULES.md` cheat sheet):
+All functions call the real backend via `apiFetch` / `apiFetchAll` (Bearer token, `{message}` errors) — see `LEARNING_MODULES.md` cheat sheet:
 
-| Mock function | Real endpoint | Access | Shape |
+| Function | Endpoint | Access | Shape |
 |---|---|---|---|
 | `login({email,password})` | `POST /api/auth/login` | public | `{ user, token }` |
 | `getFoods()` | `GET /api/foods` | public | bare array `[Food]` |
@@ -131,7 +131,7 @@ Same function signature, ভেতরে `fetch` বসবে। Real endpoint c
 | `getPackages(activeOnly)` | `GET /api/packages?active=1` | public | bare array `[Package]` |
 | `add/update/deletePackage` | `POST/PATCH/DELETE /api/packages…` | admin | `Package` / `204` |
 | `createOrder()` | `POST /api/orders` | staff | `{ order }` |
-| `getAllOrders()` | `GET /api/orders` | staff | bare array (adapter unwraps pagination) |
+| `getAllOrders()` | `GET /api/orders` | staff | bare array (`apiFetchAll` follows every page) |
 | `getOrderById()` | `GET /api/orders/:id` | staff | bare order object |
 | `getCustomerOrders(phone)` | `GET /api/orders/by-phone?phone=` | staff | `{ customer, totalOrders, totalSpent, orders }` |
 | `updateOrderStatus()` | `PATCH /api/orders/:id/status` | admin | `Order` |
@@ -141,13 +141,13 @@ Same function signature, ভেতরে `fetch` বসবে। Real endpoint c
 
 Field rules: `_id` string, money = JSON number, `createdAt` ISO, `category`/`job` plain strings, errors `{ message }`. Enums lowercase (`admin|cashier`, `placed|preparing|delivered|cancelled`, `pending|paid|failed`, `dine_in|parcel|both`).
 
-All mock data persists in `localStorage` (`mock_*`, `cart`, `user`, `token`, `theme`). Price is recomputed from mock foods on order create (server-trust pattern).
+`localStorage` holds only auth cache + UI prefs (`token`, `user`, `cart`, `theme`) — all server state lives in PostgreSQL. Order prices are recomputed server-side (client numbers never trusted).
 
 ---
 
 ## 🔐 Notes
 
-- Auth is mocked localStorage token (`mock-jwt-…`) — backend will return real JWT as `token`.
+- Auth = real JWT (SimpleJWT) from `POST /api/auth/login`; `token`+`user` cached in `localStorage` (stale `mock-jwt-…` tokens auto-cleared).
 - No register page by design (staff-only); users are seeded.
 - Package order lines are single pseudo-lines (`category: "Package"`), not split into items.
 

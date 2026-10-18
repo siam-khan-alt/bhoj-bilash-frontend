@@ -47,7 +47,7 @@ export default function HisabPage() {
   const [summary, setSummary] = useState<HisabSummary | null>(null);
 
   useEffect(() => {
-    getHisabSummary(thisMonth()).then((s) => s && setSummary(s)).catch(() => {});
+    getHisabSummary(thisMonth()).then(setSummary).catch(() => {});
   }, []);
 
   if (user?.role !== "admin") return <p className="text-muted font-bold">{t("c.noAccess")}</p>;
@@ -70,7 +70,7 @@ export default function HisabPage() {
   const monthDue = monthPayableTotal - monthSalPaid;
   const monthProfit = monthSale - monthExp - monthSalPaid;
 
-  // Real backend mode: server-computed summary wins (1 call, DB aggregates).
+  // Server-computed summary (1 call, DB aggregates) wins — na pele same real data theke client-side hisab.
   const vTodaySale = summary?.today.sales ?? todaySale;
   const vTodayCash = summary?.today.cash ?? todayCash;
   const vTodayExp = summary?.today.expenses ?? todayExp;

@@ -1,38 +1,14 @@
 import type { Attendance, AttendanceStatus } from "@/types";
-import { apiFetch, isRealApi, unwrapList } from "./client";
-
-const KEY = "mock_attendance";
-const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
+import { apiFetch, apiFetchAll } from "./client";
 
 export const todayBD = () => new Date().toISOString().slice(0, 10);
 
-function getStored(): Attendance[] {
-  if (typeof window === "undefined") return [];
-  const saved = localStorage.getItem(KEY);
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
-function setStored(list: Attendance[]) {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(list));
-}
-
 export async function getAttendanceByDate(date: string): Promise<Attendance[]> {
-  if (isRealApi()) return unwrapList<Attendance>(await apiFetch<unknown>(`/attendance?date=${date}`));
-  await delay();
-  return getStored().filter((a) => a.date === date);
+  return apiFetchAll<Attendance>(`/attendance?date=${date}`);
 }
 
 export async function getAttendanceByMonth(month: string): Promise<Attendance[]> {
-  if (isRealApi()) return unwrapList<Attendance>(await apiFetch<unknown>(`/attendance?month=${month}`));
-  await delay();
-  return getStored().filter((a) => a.date.startsWith(month));
+  return apiFetchAll<Attendance>(`/attendance?month=${month}`);
 }
 
 export async function markAttendance(
@@ -41,38 +17,10 @@ export async function markAttendance(
   status: AttendanceStatus,
   opts?: { inTime?: string; outTime?: string; note?: string }
 ): Promise<Attendance> {
-  if (isRealApi()) {
-    return apiFetch<Attendance>("/attendance/mark", {
-      method: "POST",
-      body: JSON.stringify({ staffId, date, status, ...opts }),
-    });
-  }
-  await delay();
-  const list = getStored();
-  const idx = list.findIndex((a) => a.staffId === staffId && a.date === date);
-  if (idx >= 0) {
-    list[idx] = {
-      ...list[idx],
-      status,
-      ...(opts?.inTime !== undefined ? { inTime: opts.inTime } : {}),
-      ...(opts?.outTime !== undefined ? { outTime: opts.outTime } : {}),
-      ...(opts?.note !== undefined ? { note: opts.note } : {}),
-    };
-    setStored(list);
-    return list[idx];
-  }
-  const item: Attendance = {
-    _id: `att_${Date.now()}_${staffId}`,
-    staffId,
-    date,
-    status,
-    inTime: opts?.inTime || "",
-    outTime: opts?.outTime || "",
-    note: opts?.note || "",
-    createdAt: new Date().toISOString(),
-  };
-  setStored([...list, item]);
-  return item;
+  return apiFetch<Attendance>("/attendance/mark", {
+    method: "POST",
+    body: JSON.stringify({ staffId, date, status, ...opts }),
+  });
 }
 
 export async function updateAttendanceTimes(
@@ -80,19 +28,10 @@ export async function updateAttendanceTimes(
   date: string,
   patch: { inTime?: string; outTime?: string; note?: string; status?: AttendanceStatus }
 ): Promise<Attendance> {
-  if (isRealApi()) {
-    return apiFetch<Attendance>("/attendance/times", {
-      method: "POST",
-      body: JSON.stringify({ staffId, date, ...patch }),
-    });
-  }
-  await delay();
-  const list = getStored();
-  const idx = list.findIndex((a) => a.staffId === staffId && a.date === date);
-  if (idx === -1) throw new Error("err.hajiraFirst");
-  list[idx] = { ...list[idx], ...patch };
-  setStored(list);
-  return list[idx];
+  return apiFetch<Attendance>("/attendance/times", {
+    method: "POST",
+    body: JSON.stringify({ staffId, date, ...patch }),
+  });
 }
 
 export async function getAttendanceByMonthDetailed(month: string): Promise<Attendance[]> {

@@ -8,7 +8,7 @@ import { DEFAULT_HOURS } from "@/lib/restaurant";
 import { getFoods, updateFood } from "@/lib/api/food";
 import { getStaff, updateStaff } from "@/lib/api/staff";
 import { getExpenses, updateExpense } from "@/lib/api/expenses";
-import { showSuccess } from "@/components/common/Toast";
+import { showSuccess, showError } from "@/components/common/Toast";
 import Button from "@/components/common/Button";
 import OptionListEditor from "@/components/admin/OptionListEditor";
 import type { DayHours, OptionListKey } from "@/types";
@@ -56,6 +56,14 @@ export default function SettingsPage() {
     loadUsage();
   }, []);
 
+  // Backend theke config async ase — asha matro form field sync
+  useEffect(() => {
+    setName(config.name);
+    setAddress(config.address ?? "");
+    setPhone(config.phone ?? "");
+    setHours(config.hours && config.hours.length === 7 ? config.hours : DEFAULT_HOURS);
+  }, [config]);
+
   const cascadeFood = async (oldV: string, newV: string) => {
     const foods = await getFoods();
     await Promise.all(foods.filter((f) => f.category === oldV).map((f) => updateFood(f._id, { category: newV })));
@@ -87,9 +95,13 @@ export default function SettingsPage() {
     setHours((prev) => prev.map(() => ({ ...mon })));
   };
 
-  const save = () => {
-    updateConfig({ name: name.trim() || config.name, address, phone, hours });
-    showSuccess(t("set.saved"));
+  const save = async () => {
+    try {
+      await updateConfig({ name: name.trim() || config.name, address, phone, hours });
+      showSuccess(t("set.saved"));
+    } catch (e) {
+      showError(t(e instanceof Error ? e.message : "set.saveFail"));
+    }
   };
 
   const inputCls =

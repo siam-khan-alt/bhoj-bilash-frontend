@@ -20,7 +20,7 @@ function Stars({ n, size = "w-3.5 h-3.5" }: { n: number; size?: string }) {
   );
 }
 
-/** Public reviews — list + form (localStorage, no login). */
+/** Public reviews — list + form (backend DB, no login). */
 export default function Reviews() {
   const { t, lang } = useLang();
   const [reviews, setReviews] = useState<Review[]>([]);

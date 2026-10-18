@@ -1,31 +1,39 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { RestaurantConfig } from "@/types";
-import { getRestaurantConfig, setRestaurantConfig } from "@/lib/restaurant";
+import { RESTAURANT_DEFAULT } from "@/lib/restaurant";
+import { getRemoteConfig, patchRemoteConfig } from "@/lib/api/config";
 
 interface RestaurantContextType {
   config: RestaurantConfig;
-  updateConfig: (patch: Partial<RestaurantConfig>) => void;
+  updateConfig: (patch: Partial<RestaurantConfig>) => Promise<void>;
   refresh: () => void;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
 
 export function RestaurantProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<RestaurantConfig>(() => getRestaurantConfig());
+  const [config, setConfig] = useState<RestaurantConfig>(() => ({ ...RESTAURANT_DEFAULT }));
 
-  const refresh = () => setConfig(getRestaurantConfig());
+  const refresh = useCallback(() => {
+    getRemoteConfig().then(setConfig).catch(() => {});
+  }, []);
 
-  const updateConfig = (patch: Partial<RestaurantConfig>) => {
-    const next = { ...config, ...patch };
-    setRestaurantConfig(next);
-    setConfig(next);
+  const updateConfig = async (patch: Partial<RestaurantConfig>) => {
+    setConfig((prev) => ({ ...prev, ...patch })); // optimistic
+    try {
+      const next = await patchRemoteConfig(patch);
+      setConfig(next);
+    } catch (e) {
+      refresh(); // fail hole server truth e rollback
+      throw e;
+    }
   };
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   return <RestaurantContext.Provider value={{ config, updateConfig, refresh }}>{children}</RestaurantContext.Provider>;
 }

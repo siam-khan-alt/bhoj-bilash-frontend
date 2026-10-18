@@ -1,4 +1,4 @@
-import { apiFetch, isRealApi } from "./client";
+import { apiFetch } from "./client";
 
 export interface HisabStaffRow {
   staffId: string;
@@ -24,8 +24,7 @@ export interface HisabSummary {
   today: { date: string; sales: number; expenses: number; salaryPaid: number; cash: number };
 }
 
-/** Real backend: 1 call-e sob (mock mode-e null — page purono 5-call flow use korbe). */
-export async function getHisabSummary(month: string): Promise<HisabSummary | null> {
-  if (!isRealApi()) return null;
+/** Server-computed month summary — 1 call, DB aggregates. */
+export async function getHisabSummary(month: string): Promise<HisabSummary> {
   return apiFetch<HisabSummary>(`/hisab/summary?month=${month}`);
 }

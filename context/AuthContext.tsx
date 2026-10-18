@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import type { User } from "@/types";
-import { isRealApi } from "@/lib/api/client";
 
 interface AuthContextType {
   user: User | null;
@@ -16,16 +15,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // real mode + purono mock session (mock-jwt-) thakle clear — naile user
-    // "login" dekhabe kintu sob staff API 401 khabe. Fresh login must.
-    if (isRealApi()) {
-      const tok = localStorage.getItem("token");
-      if (tok && tok.startsWith("mock-jwt-")) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
-        return;
-      }
+    // Purono mock session (mock-jwt-) thakle clear — oi token backend e 401 dey, fresh login must.
+    const tok = localStorage.getItem("token");
+    if (tok && tok.startsWith("mock-jwt-")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      return;
     }
     const saved = localStorage.getItem("user");
     if (saved) {
